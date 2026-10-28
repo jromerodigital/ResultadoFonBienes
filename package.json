@@ -1,0 +1,27 @@
+{
+  "name": "resultados-fonbienes",
+  "version": "2.1.0",
+  "private": true,
+  "description": "Plataforma Ejecutiva de Resultados e Inteligencia Comercial - Fonbienes Perú E.A.F.C. (FBP010)",
+  "type": "module",
+  "scripts": {
+    "sync-data": "node scripts/sync-public-summary.mjs",
+    "dev": "node scripts/sync-public-summary.mjs && vite --port 3000",
+    "build": "node scripts/sync-public-summary.mjs && vite build",
+    "preview": "vite preview --port 3000",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "lucide-react": "^0.469.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "fflate": "^0.8.2",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.0.11"
+  }
+}

@@ -1,0 +1,17 @@
+# Dependencies & Build outputs
+node_modules/
+dist/
+
+# Sensitive & Proprietary Data Sources (NEVER COMMIT)
+*.xlsx
+*.xls
+*.csv
+Resultados/
+
+# Environment & Logs
+.env
+.env.*
+.DS_Store
+*.log
+.vercel
+.netlify
