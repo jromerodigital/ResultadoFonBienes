@@ -494,7 +494,6 @@ export function parseFonbienesWorkbook(arrayBuffer, sourceMeta = {}) {
           grupo: detectedGrupo,
           plazoMeses: detectedPlazo,
           plazoAnios: Number((detectedPlazo / 12).toFixed(1)),
-          factorTotal: 1.2124,
           certificadoMinEst: 40000,
           certificadoMaxEst: 80000,
           certificadoPaso: 5000,
@@ -504,14 +503,12 @@ export function parseFonbienesWorkbook(arrayBuffer, sourceMeta = {}) {
             pandero: {
               nombre: 'Pandero Inmuebles',
               plazoMeses: panderoPlazo,
-              factorTotal: 1.287,
               cuotasRemateRef: panderoCuotas,
               pctPlazoRef: Number(((panderoCuotas / panderoPlazo) * 100).toFixed(1))
             },
             maquisistema: {
               nombre: 'Maquisistema',
               plazoMeses: maquiPlazo,
-              factorTotal: 1.295,
               cuotasRemateRef: maquiCuotas,
               pctPlazoRef: Number(((maquiCuotas / maquiPlazo) * 100).toFixed(1))
             }

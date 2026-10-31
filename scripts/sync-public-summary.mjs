@@ -38,25 +38,51 @@ function main() {
 
   const { config, asambleas, registros } = parsed.dataset;
 
-  // Build strictly sanitized per-assembly metrics + anonymized titular awards (ZERO contracts, ZERO cupos, ZERO suplentes)
+  function parseSuplenteOrder(tipoAdj) {
+    const match = String(tipoAdj || '').match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 99;
+  }
+
+  function getRowGroupRank(row) {
+    if (row.isTitular && row.modalidad === 'SORTEO') return 0;
+    if (row.isTitular) return 1;
+    return 2;
+  }
+
+  // Build strictly sanitized per-assembly metrics + anonymized results list (Titulares + Suplentes; ZERO contracts, ZERO cupos)
   const sanitizedAsambleas = asambleas.map((asam) => {
-    const rows = registros.filter((r) => r.nroAsamblea === asam.nro && r.isTitular);
-    const capitalSorteo = rows
+    const assemblyRows = registros.filter((r) => r.nroAsamblea === asam.nro);
+    const titularRows = assemblyRows.filter((r) => r.isTitular);
+    const suplenteRows = assemblyRows.filter((r) => !r.isTitular);
+
+    const capitalSorteo = titularRows
       .filter((r) => r.modalidad === 'SORTEO')
       .reduce((sum, r) => sum + r.certificado, 0);
-    const capitalRemate = rows
+    const capitalRemate = titularRows
       .filter((r) => r.modalidad === 'REMATE')
       .reduce((sum, r) => sum + r.certificado, 0);
 
-    // Sort titular awards cleanly: SORTEO first, then REMATE ordered by winning cuotas descending
-    const sortedTitulares = [...rows].sort((a, b) => {
-      if (a.modalidad === b.modalidad) return b.cuotas - a.cuotas;
-      return a.modalidad === 'SORTEO' ? -1 : 1;
+    // Commercial order: 1) SORTEO (Titular), 2) REMATE Titulares (highest to lowest cuotas), 3) SUPLENTES (highest to lowest cuotas / rank)
+    const sortedRows = [...assemblyRows].sort((a, b) => {
+      const groupDiff = getRowGroupRank(a) - getRowGroupRank(b);
+      if (groupDiff !== 0) return groupDiff;
+
+      if (b.cuotas !== a.cuotas) return b.cuotas - a.cuotas;
+
+      if (!a.isTitular && !b.isTitular) {
+        const supDiff = parseSuplenteOrder(a.tipoAdj) - parseSuplenteOrder(b.tipoAdj);
+        if (supDiff !== 0) return supDiff;
+      }
+
+      if (b.certificado !== a.certificado) return b.certificado - a.certificado;
+      return (a.orden || 0) - (b.orden || 0);
     });
 
-    const resultadosTitulares = sortedTitulares.map((r, idx) => ({
+    const resultados = sortedRows.map((r, idx) => ({
       item: idx + 1,
       modalidad: r.modalidad,
+      tipoAdj: r.tipoAdj,
+      isTitular: r.isTitular,
       cuotas: r.cuotas,
       pctPlazo:
         r.cuotas > 0
@@ -71,6 +97,7 @@ function main() {
       mesLabel: asam.mesLabel,
       mesShort: asam.mesShort,
       totalTitulares: asam.totalTitulares,
+      totalSuplentes: suplenteRows.length,
       titularesSorteo: asam.titularesSorteo,
       titularesRemate: asam.titularesRemate,
       minCuotasGanadoras: asam.minCuotasGanadoras,
@@ -80,7 +107,7 @@ function main() {
       capitalSorteo,
       capitalRemate,
       capitalEntregado: asam.capitalEntregado,
-      resultadosTitulares
+      resultados
     };
   });
 

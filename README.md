@@ -20,7 +20,7 @@ Dashboard ejecutivo de resultados agregados y simulación comercial para asesore
 
 ## Arquitectura de Privacidad y Seguridad de Datos
 
-* La publicación web opera exclusivamente sobre **estadísticas agregadas por asamblea** (`src/data/publicSummary.json`), sin incluir contratos individuales, cupos nominales, registros de suplentes ni archivos fuente descargables.
+* La publicación web opera exclusivamente sobre **estadísticas consolidadas y resultados anonimizados por asamblea** (`src/data/publicSummary.json`), sin incluir contratos individuales, cupos nominales ni archivos fuente descargables.
 
 ---
 

@@ -322,7 +322,7 @@ export default function SimulatorView({ dataset }) {
                 {formatUsd(sim.fbCuotaMensual, { decimals: 2 })}
               </p>
               <p className="mt-1 text-[10px] text-slate-400 tabular-nums">
-                ×{sim.fbFactor} ÷ {config.plazoMeses} meses
+                Plazo {config.plazoMeses} meses
               </p>
             </div>
 
@@ -353,13 +353,184 @@ export default function SimulatorView({ dataset }) {
             </div>
           </div>
 
-          {/* Side-by-Side Comparison Table */}
+          {/* Side-by-Side Comparison (Mobile Comparative Cards + Desktop Table) */}
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-800 dark:text-emerald-300 mb-2">
-              Comparativa Exacta para {formatUsd(certificado)} USD
-            </p>
-            <div className="overflow-x-auto -mx-2 px-2">
-              <table className="w-full text-left border-collapse min-w-[440px]">
+            <div className="flex items-baseline justify-between gap-2 mb-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-800 dark:text-emerald-300">
+                Comparativa Exacta para {formatUsd(certificado)} USD
+              </p>
+              <span className="sm:hidden text-[10px] font-medium text-slate-400">
+                Desembolso de remate
+              </span>
+            </div>
+
+            {/* MOBILE VIEW (< 640px): Zero-scroll Comparative Cards keeping Company + Remate Money 100% visible */}
+            {(() => {
+              const maxDesembolso = Math.max(
+                1,
+                sim.fbDesembolso,
+                sim.maquisistema.desembolso,
+                sim.pandero.desembolso
+              );
+              const fbBarPct = Math.max(8, Math.round((sim.fbDesembolso / maxDesembolso) * 100));
+              const maquiBarPct = Math.max(
+                8,
+                Math.round((sim.maquisistema.desembolso / maxDesembolso) * 100)
+              );
+              const panderoBarPct = Math.max(
+                8,
+                Math.round((sim.pandero.desembolso / maxDesembolso) * 100)
+              );
+
+              return (
+                <div className="sm:hidden space-y-2.5 tabular-nums">
+                  {/* 1. FonBienes Featured Card */}
+                  <div className="rounded-2xl p-3.5 bg-gradient-to-br from-brand-50/90 via-brand-50/50 to-white dark:from-emerald-950/60 dark:via-emerald-900/25 dark:to-slate-900/90 border border-brand-300/85 dark:border-emerald-500/45 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-brand-900 dark:text-white">
+                            FonBienes
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-brand-600/10 dark:bg-emerald-500/20 text-[10px] font-semibold text-brand-800 dark:text-emerald-300">
+                            {config.plazoMeses}m
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] font-semibold text-brand-700 dark:text-emerald-400">
+                          Oferta: {cuotas} cuotas ({sim.fbPctPlazo}%)
+                        </p>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <p className="text-base font-extrabold tracking-tight text-brand-800 dark:text-emerald-300">
+                          {formatUsd(sim.fbDesembolso, { decimals: 2 })}
+                        </p>
+                        <p className="text-[10px] font-medium text-brand-700/80 dark:text-emerald-400/80">
+                          Capital a rematar
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-2.5 h-1.5 w-full rounded-full bg-brand-100/80 dark:bg-emerald-950 overflow-hidden">
+                      <div
+                        style={{ width: `${fbBarPct}%` }}
+                        className="h-full rounded-full bg-gradient-to-r from-brand-700 via-brand-600 to-emerald-400 transition-all duration-300"
+                      />
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-brand-200/60 dark:border-emerald-500/20 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300">
+                      <span>
+                        Cuota mensual:{' '}
+                        <strong className="font-bold text-slate-900 dark:text-white">
+                          {formatUsd(sim.fbCuotaMensual, { decimals: 2 })}
+                        </strong>
+                      </span>
+                      <span className="font-semibold text-brand-700 dark:text-emerald-400">
+                        Menor desembolso
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 2. Maquisistema Comparison Card */}
+                  <div className="rounded-2xl p-3.5 bg-white dark:bg-slate-900/75 border border-slate-200/85 dark:border-slate-700/80">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                            Maquisistema
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-400">
+                            {sim.maquisistema.plazoMeses}m · ref.
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                          Oferta ref.: {sim.maquisistema.cuotasRef} cuotas ({sim.maquisistema.pctRef}%)
+                        </p>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <p className="text-base font-bold tracking-tight text-slate-800 dark:text-slate-100">
+                          {formatUsd(sim.maquisistema.desembolso, { decimals: 2 })}
+                        </p>
+                        {sim.maquisistema.ahorroLiquidez > 0 && (
+                          <p className="text-[10px] font-medium text-slate-400">
+                            +{formatUsd(sim.maquisistema.ahorroLiquidez)} vs. FB
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-2.5 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        style={{ width: `${maquiBarPct}%` }}
+                        className="h-full rounded-full bg-slate-300 dark:bg-slate-600 transition-all duration-300"
+                      />
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                      <span>
+                        Cuota mensual:{' '}
+                        <strong className="font-semibold text-slate-700 dark:text-slate-200">
+                          {formatUsd(sim.maquisistema.cuotaMensual, { decimals: 2 })}
+                        </strong>
+                      </span>
+                      <span>Plazo 12.5 años</span>
+                    </div>
+                  </div>
+
+                  {/* 3. Pandero Comparison Card */}
+                  <div className="rounded-2xl p-3.5 bg-white dark:bg-slate-900/75 border border-slate-200/85 dark:border-slate-700/80">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                            Pandero
+                          </span>
+                          <span className="text-[10px] font-medium text-slate-400">
+                            {sim.pandero.plazoMeses}m · ref.
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                          Oferta ref.: {sim.pandero.cuotasRef} cuotas ({sim.pandero.pctRef}%)
+                        </p>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <p className="text-base font-bold tracking-tight text-slate-800 dark:text-slate-100">
+                          {formatUsd(sim.pandero.desembolso, { decimals: 2 })}
+                        </p>
+                        {sim.pandero.ahorroLiquidez > 0 && (
+                          <p className="text-[10px] font-medium text-slate-400">
+                            +{formatUsd(sim.pandero.ahorroLiquidez)} vs. FB
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-2.5 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        style={{ width: `${panderoBarPct}%` }}
+                        className="h-full rounded-full bg-slate-400 dark:bg-slate-500 transition-all duration-300"
+                      />
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                      <span>
+                        Cuota mensual:{' '}
+                        <strong className="font-semibold text-slate-700 dark:text-slate-200">
+                          {formatUsd(sim.pandero.cuotaMensual, { decimals: 2 })}
+                        </strong>
+                      </span>
+                      <span>Plazo 10 años</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* DESKTOP & TABLET VIEW (>= 640px): Clean Executive Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-brand-100 dark:border-emerald-500/20 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
                     <th className="py-2.5 pr-3">Entidad</th>
@@ -426,10 +597,6 @@ export default function SimulatorView({ dataset }) {
                 </tbody>
               </table>
             </div>
-
-            <p className="mt-2.5 text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed tabular-nums">
-              Fórmulas aplicadas: FonBienes (Monto × 1.2124 ÷ 132m) · Maquisistema (Monto × 1.295 ÷ 150m) · Pandero (Monto × 1.287 ÷ 120m).
-            </p>
           </div>
 
           {/* Primary Executive Action */}

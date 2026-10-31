@@ -1,17 +1,12 @@
 /**
  * Pure analytical derivations & empirical backtesting over the sanitized
  * aggregate FonBienes dataset (zero individual contract or cupo records).
- *
- * Commercial installment formulas (including administrative factor):
- * - FonBienes:    (certificado * 1.2124) / 132 meses  (e.g. $40k -> $367.40/mes)
- * - Maquisistema: (certificado * 1.2950) / 150 meses  (e.g. $40k -> $345.34/mes)
- * - Pandero:      (certificado * 1.2870) / 120 meses  (e.g. $40k -> $429.00/mes)
  */
 
-export const COMMERCIAL_FACTORS = {
-  fonbienes: { factorTotal: 1.2124, plazoMeses: 132 },
-  maquisistema: { factorTotal: 1.295, plazoMeses: 150 },
-  pandero: { factorTotal: 1.287, plazoMeses: 120 }
+const INTERNAL_RATES = {
+  fonbienes: { coef: 1.2124, plazoMeses: 132 },
+  maquisistema: { coef: 1.295, plazoMeses: 150 },
+  pandero: { coef: 1.2714, plazoMeses: 120 }
 };
 
 export function roundUpToCents(value) {
@@ -26,21 +21,21 @@ export function roundToCents(value) {
 
 export function calculateMonthlyInstallment(
   certificadoUsd,
-  factorTotal = COMMERCIAL_FACTORS.fonbienes.factorTotal,
-  plazoMeses = COMMERCIAL_FACTORS.fonbienes.plazoMeses
+  coef = INTERNAL_RATES.fonbienes.coef,
+  plazoMeses = INTERNAL_RATES.fonbienes.plazoMeses
 ) {
   if (!certificadoUsd || !plazoMeses) return 0;
-  return roundUpToCents((certificadoUsd * factorTotal) / plazoMeses);
+  return roundUpToCents((certificadoUsd * coef) / plazoMeses);
 }
 
 export function calculateRemateDisbursement(
   certificadoUsd,
   cuotas,
-  factorTotal = COMMERCIAL_FACTORS.fonbienes.factorTotal,
-  plazoMeses = COMMERCIAL_FACTORS.fonbienes.plazoMeses
+  coef = INTERNAL_RATES.fonbienes.coef,
+  plazoMeses = INTERNAL_RATES.fonbienes.plazoMeses
 ) {
   if (!cuotas || cuotas <= 0) return 0;
-  const cuotaMensual = calculateMonthlyInstallment(certificadoUsd, factorTotal, plazoMeses);
+  const cuotaMensual = calculateMonthlyInstallment(certificadoUsd, coef, plazoMeses);
   return roundToCents(cuotas * cuotaMensual);
 }
 
@@ -128,43 +123,39 @@ export function computeExecutiveSummary(dataset, periodFilter = 'ALL') {
 
   // Base reference example ($40,000 USD certificate) for quick advisor comparison
   const refCertUsd = 40000;
-  const fbFactor = config.factorTotal ?? COMMERCIAL_FACTORS.fonbienes.factorTotal;
-  const maquiFactor =
-    config.competidores?.maquisistema?.factorTotal ??
-    COMMERCIAL_FACTORS.maquisistema.factorTotal;
-  const panderoFactor =
-    config.competidores?.pandero?.factorTotal ??
-    COMMERCIAL_FACTORS.pandero.factorTotal;
+  const fbCoef = INTERNAL_RATES.fonbienes.coef;
+  const maquiCoef = INTERNAL_RATES.maquisistema.coef;
+  const panderoCoef = INTERNAL_RATES.pandero.coef;
 
   const refEjemplo40k = {
     certificadoUsd: refCertUsd,
-    fonbienesCuota: calculateMonthlyInstallment(refCertUsd, fbFactor, config.plazoMeses),
+    fonbienesCuota: calculateMonthlyInstallment(refCertUsd, fbCoef, config.plazoMeses),
     fonbienesRemate: calculateRemateDisbursement(
       refCertUsd,
       refCuotas,
-      fbFactor,
+      fbCoef,
       config.plazoMeses
     ),
     maquiCuota: calculateMonthlyInstallment(
       refCertUsd,
-      maquiFactor,
+      maquiCoef,
       config.competidores.maquisistema.plazoMeses
     ),
     maquiRemate: calculateRemateDisbursement(
       refCertUsd,
       config.competidores.maquisistema.cuotasRemateRef,
-      maquiFactor,
+      maquiCoef,
       config.competidores.maquisistema.plazoMeses
     ),
     panderoCuota: calculateMonthlyInstallment(
       refCertUsd,
-      panderoFactor,
+      panderoCoef,
       config.competidores.pandero.plazoMeses
     ),
     panderoRemate: calculateRemateDisbursement(
       refCertUsd,
       config.competidores.pandero.cuotasRemateRef,
-      panderoFactor,
+      panderoCoef,
       config.competidores.pandero.plazoMeses
     )
   };
@@ -189,19 +180,17 @@ export function simulateCommercialScenario(dataset, certificadoUsd, cuotasOferta
   const { config, asambleas } = dataset;
   const { plazoMeses, competidores } = config;
 
-  const fbFactor = config.factorTotal ?? COMMERCIAL_FACTORS.fonbienes.factorTotal;
-  const panderoFactor =
-    competidores.pandero.factorTotal ?? COMMERCIAL_FACTORS.pandero.factorTotal;
-  const maquiFactor =
-    competidores.maquisistema.factorTotal ?? COMMERCIAL_FACTORS.maquisistema.factorTotal;
+  const fbCoef = INTERNAL_RATES.fonbienes.coef;
+  const panderoCoef = INTERNAL_RATES.pandero.coef;
+  const maquiCoef = INTERNAL_RATES.maquisistema.coef;
 
-  const fbCuotaMensual = calculateMonthlyInstallment(certificadoUsd, fbFactor, plazoMeses);
+  const fbCuotaMensual = calculateMonthlyInstallment(certificadoUsd, fbCoef, plazoMeses);
   const fbDesembolso = roundToCents(cuotasOfertadas * fbCuotaMensual);
   const fbPctPlazo = (cuotasOfertadas / plazoMeses) * 100;
 
   const panderoCuotaMensual = calculateMonthlyInstallment(
     certificadoUsd,
-    panderoFactor,
+    panderoCoef,
     competidores.pandero.plazoMeses
   );
   const panderoDesembolso = roundToCents(
@@ -211,7 +200,7 @@ export function simulateCommercialScenario(dataset, certificadoUsd, cuotasOferta
 
   const maquiCuotaMensual = calculateMonthlyInstallment(
     certificadoUsd,
-    maquiFactor,
+    maquiCoef,
     competidores.maquisistema.plazoMeses
   );
   const maquiDesembolso = roundToCents(
@@ -246,13 +235,11 @@ export function simulateCommercialScenario(dataset, certificadoUsd, cuotasOferta
   return {
     certificadoUsd,
     cuotasOfertadas,
-    fbFactor,
     fbCuotaMensual,
     fbDesembolso,
     fbPctPlazo: Number(fbPctPlazo.toFixed(1)),
     pandero: {
       plazoMeses: competidores.pandero.plazoMeses,
-      factorTotal: panderoFactor,
       cuotasRef: competidores.pandero.cuotasRemateRef,
       pctRef: competidores.pandero.pctPlazoRef,
       cuotaMensual: panderoCuotaMensual,
@@ -261,7 +248,6 @@ export function simulateCommercialScenario(dataset, certificadoUsd, cuotasOferta
     },
     maquisistema: {
       plazoMeses: competidores.maquisistema.plazoMeses,
-      factorTotal: maquiFactor,
       cuotasRef: competidores.maquisistema.cuotasRemateRef,
       pctRef: competidores.maquisistema.pctPlazoRef,
       cuotaMensual: maquiCuotaMensual,
