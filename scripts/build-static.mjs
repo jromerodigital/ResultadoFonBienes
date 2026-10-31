@@ -33,3 +33,4 @@ fs.copyFileSync(distHtml, rootHtml);
 fs.writeFileSync(rootNoJekyll, '', 'utf8');
 
 console.log('[build-static] Artefactos estáticos listos en raíz (index.html + assets/ + .nojekyll) y en dist/.');
+

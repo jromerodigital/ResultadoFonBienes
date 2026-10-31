@@ -6,16 +6,35 @@
   html {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-    background-color: #FAFAFA;
+    background-color: #F5FAF7;
     color: #0F172A;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
+  html.dark {
+    background-color: #091114;
+    color: #F1F5F9;
+  }
+
   body {
-    background-color: #FAFAFA;
+    background-color: #F5FAF7;
+    background-image:
+      radial-gradient(1100px 460px at 50% -90px, rgba(5, 124, 63, 0.09), transparent 70%),
+      radial-gradient(700px 380px at 92% 8%, rgba(1, 81, 140, 0.05), transparent 65%),
+      linear-gradient(180deg, #F4FAF6 0%, #F8FAFC 48%, #F3F8F5 100%);
+    background-attachment: fixed;
     overflow-x: hidden;
+    transition: background-color 220ms ease, color 220ms ease;
+  }
+
+  html.dark body {
+    background-color: #091114;
+    background-image:
+      radial-gradient(1100px 480px at 50% -100px, rgba(16, 185, 129, 0.13), transparent 70%),
+      radial-gradient(760px 400px at 88% 6%, rgba(1, 81, 140, 0.12), transparent 65%),
+      linear-gradient(180deg, #091312 0%, #0B1219 52%, #080E14 100%);
   }
 }
 
@@ -23,12 +42,74 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Institutional Title Gradient — Deep Slate/Blue into FonBienes Corporate Green (Light) & Crisp White into Emerald (Dark) */
+.title-brand-gradient {
+  background: linear-gradient(100deg, #062538 0%, #064f2a 48%, #057c3f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+html.dark .title-brand-gradient {
+  background: linear-gradient(100deg, #FFFFFF 0%, #D1FAE5 52%, #34D399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Refined Card Surfaces with Subtle Emerald Borders & Gentle Tints */
+.surface-card {
+  background: linear-gradient(165deg, #ffffff 68%, #f6fcf8 100%);
+  border: 1px solid rgba(5, 124, 63, 0.16);
+  box-shadow: 0 10px 36px -10px rgba(6, 79, 42, 0.06), 0 2px 10px -3px rgba(15, 23, 42, 0.03);
+  transition: border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
+}
+
+.surface-card:hover {
+  border-color: rgba(5, 124, 63, 0.32);
+  box-shadow: 0 18px 46px -12px rgba(5, 124, 63, 0.11), 0 4px 14px -4px rgba(15, 23, 42, 0.04);
+}
+
+html.dark .surface-card {
+  background: linear-gradient(165deg, rgba(17, 26, 35, 0.94) 58%, rgba(13, 27, 24, 0.94) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.16);
+  box-shadow: 0 14px 40px -12px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html.dark .surface-card:hover {
+  border-color: rgba(52, 211, 153, 0.32);
+  box-shadow: 0 18px 48px -12px rgba(0, 0, 0, 0.65), 0 0 24px -10px rgba(16, 185, 129, 0.18);
+}
+
+.surface-card-featured {
+  background: linear-gradient(150deg, #ffffff 45%, #ecfaf2 100%);
+  border: 1px solid rgba(5, 124, 63, 0.28);
+  box-shadow: 0 12px 38px -10px rgba(5, 124, 63, 0.10), 0 2px 10px -3px rgba(15, 23, 42, 0.03);
+  transition: border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
+}
+
+.surface-card-featured:hover {
+  border-color: rgba(5, 124, 63, 0.45);
+  box-shadow: 0 18px 48px -12px rgba(5, 124, 63, 0.15), 0 4px 14px -4px rgba(15, 23, 42, 0.04);
+}
+
+html.dark .surface-card-featured {
+  background: linear-gradient(150deg, rgba(16, 30, 34, 0.96) 40%, rgba(10, 44, 30, 0.88) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.30);
+  box-shadow: 0 14px 42px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(52, 211, 153, 0.08);
+}
+
+html.dark .surface-card-featured:hover {
+  border-color: rgba(52, 211, 153, 0.48);
+  box-shadow: 0 18px 48px -10px rgba(0, 0, 0, 0.68), 0 0 28px -8px rgba(16, 185, 129, 0.24);
+}
+
 /* Custom Tactile Range Slider (Apple / Rams aesthetic) */
 input[type='range'].rams-slider {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 6px;
+  height: 7px;
   border-radius: 9999px;
   outline: none;
   cursor: pointer;
@@ -42,14 +123,20 @@ input[type='range'].rams-slider::-webkit-slider-thumb {
   border-radius: 50%;
   background: #ffffff;
   border: 2.5px solid #057c3f;
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 3px 10px rgba(5, 124, 63, 0.22);
   cursor: grab;
   transition: transform 150ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease;
 }
 
+html.dark input[type='range'].rams-slider::-webkit-slider-thumb {
+  background: #0F172A;
+  border: 2.5px solid #34D399;
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.35);
+}
+
 input[type='range'].rams-slider::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 14px rgba(5, 124, 63, 0.25);
+  box-shadow: 0 4px 14px rgba(5, 124, 63, 0.32);
 }
 
 input[type='range'].rams-slider::-webkit-slider-thumb:active {
@@ -63,8 +150,14 @@ input[type='range'].rams-slider::-moz-range-thumb {
   border-radius: 50%;
   background: #ffffff;
   border: 2.5px solid #057c3f;
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 3px 10px rgba(5, 124, 63, 0.22);
   cursor: grab;
+}
+
+html.dark input[type='range'].rams-slider::-moz-range-thumb {
+  background: #0F172A;
+  border: 2.5px solid #34D399;
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.35);
 }
 
 /* Subtle scrollbar hiding where needed */
@@ -75,4 +168,3 @@ input[type='range'].rams-slider::-moz-range-thumb {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-

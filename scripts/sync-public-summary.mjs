@@ -38,7 +38,7 @@ function main() {
 
   const { config, asambleas, registros } = parsed.dataset;
 
-  // Build strictly aggregated per-assembly metrics (ZERO individual contracts, cupos, or suplentes)
+  // Build strictly sanitized per-assembly metrics + anonymized titular awards (ZERO contracts, ZERO cupos, ZERO suplentes)
   const sanitizedAsambleas = asambleas.map((asam) => {
     const rows = registros.filter((r) => r.nroAsamblea === asam.nro && r.isTitular);
     const capitalSorteo = rows
@@ -47,6 +47,23 @@ function main() {
     const capitalRemate = rows
       .filter((r) => r.modalidad === 'REMATE')
       .reduce((sum, r) => sum + r.certificado, 0);
+
+    // Sort titular awards cleanly: SORTEO first, then REMATE ordered by winning cuotas descending
+    const sortedTitulares = [...rows].sort((a, b) => {
+      if (a.modalidad === b.modalidad) return b.cuotas - a.cuotas;
+      return a.modalidad === 'SORTEO' ? -1 : 1;
+    });
+
+    const resultadosTitulares = sortedTitulares.map((r, idx) => ({
+      item: idx + 1,
+      modalidad: r.modalidad,
+      cuotas: r.cuotas,
+      pctPlazo:
+        r.cuotas > 0
+          ? Number(((r.cuotas / config.plazoMeses) * 100).toFixed(1))
+          : 0,
+      certificado: r.certificado
+    }));
 
     return {
       nro: asam.nro,
@@ -62,7 +79,8 @@ function main() {
       pctPlazoMin: asam.pctPlazoMin,
       capitalSorteo,
       capitalRemate,
-      capitalEntregado: asam.capitalEntregado
+      capitalEntregado: asam.capitalEntregado,
+      resultadosTitulares
     };
   });
 

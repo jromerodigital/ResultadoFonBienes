@@ -1,19 +1,71 @@
 /**
  * Pure analytical derivations & empirical backtesting over the sanitized
  * aggregate FonBienes dataset (zero individual contract or cupo records).
+ *
+ * Commercial installment formulas (including administrative factor):
+ * - FonBienes:    (certificado * 1.2124) / 132 meses  (e.g. $40k -> $367.40/mes)
+ * - Maquisistema: (certificado * 1.2950) / 150 meses  (e.g. $40k -> $345.34/mes)
+ * - Pandero:      (certificado * 1.2870) / 120 meses  (e.g. $40k -> $429.00/mes)
  */
 
-export function formatUsd(amount, { compact = false } = {}) {
+export const COMMERCIAL_FACTORS = {
+  fonbienes: { factorTotal: 1.2124, plazoMeses: 132 },
+  maquisistema: { factorTotal: 1.295, plazoMeses: 150 },
+  pandero: { factorTotal: 1.287, plazoMeses: 120 }
+};
+
+export function roundUpToCents(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.ceil((value - 1e-9) * 100) / 100;
+}
+
+export function roundToCents(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value * 100) / 100;
+}
+
+export function calculateMonthlyInstallment(
+  certificadoUsd,
+  factorTotal = COMMERCIAL_FACTORS.fonbienes.factorTotal,
+  plazoMeses = COMMERCIAL_FACTORS.fonbienes.plazoMeses
+) {
+  if (!certificadoUsd || !plazoMeses) return 0;
+  return roundUpToCents((certificadoUsd * factorTotal) / plazoMeses);
+}
+
+export function calculateRemateDisbursement(
+  certificadoUsd,
+  cuotas,
+  factorTotal = COMMERCIAL_FACTORS.fonbienes.factorTotal,
+  plazoMeses = COMMERCIAL_FACTORS.fonbienes.plazoMeses
+) {
+  if (!cuotas || cuotas <= 0) return 0;
+  const cuotaMensual = calculateMonthlyInstallment(certificadoUsd, factorTotal, plazoMeses);
+  return roundToCents(cuotas * cuotaMensual);
+}
+
+export function formatUsd(amount, { compact = false, decimals = 0 } = {}) {
   if (amount === null || amount === undefined || Number.isNaN(amount)) return '—';
+  const sign = amount < 0 ? '-' : '';
+  const abs = Math.abs(amount);
+
   if (compact) {
-    if (Math.abs(amount) >= 1_000_000) {
-      return `$${(amount / 1_000_000).toFixed(2)}M`;
+    if (abs >= 1_000_000) {
+      return `${sign}$${(abs / 1_000_000).toFixed(2)}M`;
     }
-    if (Math.abs(amount) >= 1_000) {
-      return `$${Math.round(amount / 1_000)}k`;
+    if (abs >= 1_000) {
+      return `${sign}$${Math.round(abs / 1_000)}k`;
     }
   }
-  return `$${Math.round(amount).toLocaleString('en-US')}`;
+
+  if (decimals > 0) {
+    return `${sign}$${abs.toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    })}`;
+  }
+
+  return `${sign}$${Math.round(abs).toLocaleString('en-US')}`;
 }
 
 export function computeExecutiveSummary(dataset, periodFilter = 'ALL') {
@@ -74,6 +126,49 @@ export function computeExecutiveSummary(dataset, periodFilter = 'ALL') {
       ? allMinBids[Math.floor(allMinBids.length / 2)]
       : 28;
 
+  // Base reference example ($40,000 USD certificate) for quick advisor comparison
+  const refCertUsd = 40000;
+  const fbFactor = config.factorTotal ?? COMMERCIAL_FACTORS.fonbienes.factorTotal;
+  const maquiFactor =
+    config.competidores?.maquisistema?.factorTotal ??
+    COMMERCIAL_FACTORS.maquisistema.factorTotal;
+  const panderoFactor =
+    config.competidores?.pandero?.factorTotal ??
+    COMMERCIAL_FACTORS.pandero.factorTotal;
+
+  const refEjemplo40k = {
+    certificadoUsd: refCertUsd,
+    fonbienesCuota: calculateMonthlyInstallment(refCertUsd, fbFactor, config.plazoMeses),
+    fonbienesRemate: calculateRemateDisbursement(
+      refCertUsd,
+      refCuotas,
+      fbFactor,
+      config.plazoMeses
+    ),
+    maquiCuota: calculateMonthlyInstallment(
+      refCertUsd,
+      maquiFactor,
+      config.competidores.maquisistema.plazoMeses
+    ),
+    maquiRemate: calculateRemateDisbursement(
+      refCertUsd,
+      config.competidores.maquisistema.cuotasRemateRef,
+      maquiFactor,
+      config.competidores.maquisistema.plazoMeses
+    ),
+    panderoCuota: calculateMonthlyInstallment(
+      refCertUsd,
+      panderoFactor,
+      config.competidores.pandero.plazoMeses
+    ),
+    panderoRemate: calculateRemateDisbursement(
+      refCertUsd,
+      config.competidores.pandero.cuotasRemateRef,
+      panderoFactor,
+      config.competidores.pandero.plazoMeses
+    )
+  };
+
   return {
     isFilteredSingle: periodFilter !== 'ALL',
     scopedAsamblea,
@@ -85,7 +180,8 @@ export function computeExecutiveSummary(dataset, periodFilter = 'ALL') {
     totalTitulares,
     totalRemateTitulares,
     totalSorteoTitulares,
-    rangoIntercuartil: { min: p25, max: p75, mediana: medianCuotas }
+    rangoIntercuartil: { min: p25, max: p75, mediana: medianCuotas },
+    refEjemplo40k
   };
 }
 
@@ -93,19 +189,35 @@ export function simulateCommercialScenario(dataset, certificadoUsd, cuotasOferta
   const { config, asambleas } = dataset;
   const { plazoMeses, competidores } = config;
 
-  const fbCuotaMensual = certificadoUsd / plazoMeses;
-  const fbDesembolso = cuotasOfertadas * fbCuotaMensual;
+  const fbFactor = config.factorTotal ?? COMMERCIAL_FACTORS.fonbienes.factorTotal;
+  const panderoFactor =
+    competidores.pandero.factorTotal ?? COMMERCIAL_FACTORS.pandero.factorTotal;
+  const maquiFactor =
+    competidores.maquisistema.factorTotal ?? COMMERCIAL_FACTORS.maquisistema.factorTotal;
+
+  const fbCuotaMensual = calculateMonthlyInstallment(certificadoUsd, fbFactor, plazoMeses);
+  const fbDesembolso = roundToCents(cuotasOfertadas * fbCuotaMensual);
   const fbPctPlazo = (cuotasOfertadas / plazoMeses) * 100;
 
-  const panderoCuotaMensual = certificadoUsd / competidores.pandero.plazoMeses;
-  const panderoDesembolso =
-    competidores.pandero.cuotasRemateRef * panderoCuotaMensual;
-  const ahorroVsPandero = panderoDesembolso - fbDesembolso;
+  const panderoCuotaMensual = calculateMonthlyInstallment(
+    certificadoUsd,
+    panderoFactor,
+    competidores.pandero.plazoMeses
+  );
+  const panderoDesembolso = roundToCents(
+    competidores.pandero.cuotasRemateRef * panderoCuotaMensual
+  );
+  const ahorroVsPandero = roundToCents(panderoDesembolso - fbDesembolso);
 
-  const maquiCuotaMensual = certificadoUsd / competidores.maquisistema.plazoMeses;
-  const maquiDesembolso =
-    competidores.maquisistema.cuotasRemateRef * maquiCuotaMensual;
-  const ahorroVsMaqui = maquiDesembolso - fbDesembolso;
+  const maquiCuotaMensual = calculateMonthlyInstallment(
+    certificadoUsd,
+    maquiFactor,
+    competidores.maquisistema.plazoMeses
+  );
+  const maquiDesembolso = roundToCents(
+    competidores.maquisistema.cuotasRemateRef * maquiCuotaMensual
+  );
+  const ahorroVsMaqui = roundToCents(maquiDesembolso - fbDesembolso);
 
   const validAsambleas = asambleas.filter((a) => a.minCuotasGanadoras !== null);
   const wonAsambleas = validAsambleas.filter(
@@ -134,11 +246,13 @@ export function simulateCommercialScenario(dataset, certificadoUsd, cuotasOferta
   return {
     certificadoUsd,
     cuotasOfertadas,
+    fbFactor,
     fbCuotaMensual,
     fbDesembolso,
     fbPctPlazo: Number(fbPctPlazo.toFixed(1)),
     pandero: {
       plazoMeses: competidores.pandero.plazoMeses,
+      factorTotal: panderoFactor,
       cuotasRef: competidores.pandero.cuotasRemateRef,
       pctRef: competidores.pandero.pctPlazoRef,
       cuotaMensual: panderoCuotaMensual,
@@ -147,6 +261,7 @@ export function simulateCommercialScenario(dataset, certificadoUsd, cuotasOferta
     },
     maquisistema: {
       plazoMeses: competidores.maquisistema.plazoMeses,
+      factorTotal: maquiFactor,
       cuotasRef: competidores.maquisistema.cuotasRemateRef,
       pctRef: competidores.maquisistema.pctPlazoRef,
       cuotaMensual: maquiCuotaMensual,

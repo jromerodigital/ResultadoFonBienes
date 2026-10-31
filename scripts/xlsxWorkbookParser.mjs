@@ -392,7 +392,9 @@ export function parseFonbienesWorkbook(arrayBuffer, sourceMeta = {}) {
     let panderoCuotas = 60;
     let maquiPlazo = 150;
     let maquiCuotas = 65;
-    let presetCertificates = [40000, 50000, 60000, 70000, 75000, 80000, 100000];
+    let presetCertificates = [
+      40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 100000
+    ];
 
     if (benchmarkSheet) {
       const benchRows = parseWorksheetRows(
@@ -424,7 +426,7 @@ export function parseFonbienesWorkbook(arrayBuffer, sourceMeta = {}) {
           const certsFromSheet = benchRows
             .slice(1)
             .map((row) => Number(row[cCert]))
-            .filter((n) => n >= 20000 && n <= 500000);
+            .filter((n) => n >= 40000 && n <= 100000);
           if (certsFromSheet.length >= 4) {
             presetCertificates = Array.from(new Set(certsFromSheet)).sort((a, b) => a - b);
           }
@@ -492,17 +494,24 @@ export function parseFonbienesWorkbook(arrayBuffer, sourceMeta = {}) {
           grupo: detectedGrupo,
           plazoMeses: detectedPlazo,
           plazoAnios: Number((detectedPlazo / 12).toFixed(1)),
+          factorTotal: 1.2124,
+          certificadoMinEst: 40000,
+          certificadoMaxEst: 80000,
+          certificadoPaso: 5000,
+          simuladorMaxUsd: 300000,
           presetCertificates,
           competidores: {
             pandero: {
               nombre: 'Pandero Inmuebles',
               plazoMeses: panderoPlazo,
+              factorTotal: 1.287,
               cuotasRemateRef: panderoCuotas,
               pctPlazoRef: Number(((panderoCuotas / panderoPlazo) * 100).toFixed(1))
             },
             maquisistema: {
               nombre: 'Maquisistema',
               plazoMeses: maquiPlazo,
+              factorTotal: 1.295,
               cuotasRemateRef: maquiCuotas,
               pctPlazoRef: Number(((maquiCuotas / maquiPlazo) * 100).toFixed(1))
             }

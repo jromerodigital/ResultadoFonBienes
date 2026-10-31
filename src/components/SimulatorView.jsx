@@ -1,14 +1,25 @@
 import React, { useState, useMemo } from 'react';
-import { Check, Copy } from 'lucide-react';
+import { Check, Copy, Minus, Plus } from 'lucide-react';
 import { simulateCommercialScenario, formatUsd } from '../domain/fonbienesAnalytics';
+import { useTheme } from '../context/ThemeContext';
+
+const MIN_SIM_USD = 40000;
+const MAX_SIM_USD = 300000;
+const STEP_USD = 5000;
 
 export default function SimulatorView({ dataset }) {
+  const { isDark } = useTheme();
   const { config } = dataset;
   const latestMinBid =
     dataset.asambleas[dataset.asambleas.length - 1]?.minCuotasGanadoras || 28;
 
-  const [certificado, setCertificado] = useState(70000);
-  const [customCertText, setCustomCertText] = useState('');
+  const presetButtons = useMemo(
+    () => (config.presetCertificates || []).filter((v) => v >= 40000 && v <= 100000),
+    [config.presetCertificates]
+  );
+
+  const [certificado, setCertificado] = useState(40000);
+  const [certInput, setCertInput] = useState('40000');
   const [cuotas, setCuotas] = useState(latestMinBid);
   const [copied, setCopied] = useState(false);
 
@@ -19,33 +30,63 @@ export default function SimulatorView({ dataset }) {
 
   const handleSelectChip = (val) => {
     setCertificado(val);
-    setCustomCertText('');
+    setCertInput(String(val));
   };
 
-  const handleCustomCertChange = (e) => {
-    const raw = e.target.value;
-    setCustomCertText(raw);
+  const handleCertInputChange = (e) => {
+    const raw = e.target.value.replace(/[^0-9]/g, '');
+    setCertInput(raw);
+    if (!raw) return;
+
     const num = parseInt(raw, 10);
-    if (!Number.isNaN(num) && num >= 10000 && num <= 1000000) {
+    if (Number.isNaN(num)) return;
+
+    if (num > MAX_SIM_USD) {
+      setCertInput(String(MAX_SIM_USD));
+      setCertificado(MAX_SIM_USD);
+    } else if (num >= 5000) {
       setCertificado(num);
     }
+  };
+
+  const handleCertInputBlur = () => {
+    const num = parseInt(certInput, 10);
+    if (Number.isNaN(num) || num < MIN_SIM_USD) {
+      setCertificado(MIN_SIM_USD);
+      setCertInput(String(MIN_SIM_USD));
+    } else if (num > MAX_SIM_USD) {
+      setCertificado(MAX_SIM_USD);
+      setCertInput(String(MAX_SIM_USD));
+    } else {
+      setCertificado(num);
+      setCertInput(String(num));
+    }
+  };
+
+  const handleStepCert = (delta) => {
+    const next = Math.min(
+      MAX_SIM_USD,
+      Math.max(MIN_SIM_USD, Math.round((certificado + delta) / STEP_USD) * STEP_USD)
+    );
+    setCertificado(next);
+    setCertInput(String(next));
   };
 
   const handleCopyPitch = async () => {
     const msg = [
       `*PROPUESTA INMOBILIARIA FONBIENES (${config.programa})*`,
-      `Certificado: ${formatUsd(sim.certificadoUsd)} USD · Plazo: ${config.plazoMeses} meses (${config.plazoAnios} años)`,
-      `Cuota base referencial: ${formatUsd(sim.fbCuotaMensual)} USD/mes`,
+      `Certificado / Monto: ${formatUsd(sim.certificadoUsd)} USD · Plazo: ${config.plazoMeses} meses (${config.plazoAnios} años)`,
+      `Cuota mensual FonBienes: *${formatUsd(sim.fbCuotaMensual, { decimals: 2 })} USD/mes*`,
       ``,
       `*Escenario de Remate (${sim.cuotasOfertadas} cuotas — ${sim.fbPctPlazo}% del plazo):*`,
-      `• Capital estimado para rematar: *${formatUsd(sim.fbDesembolso)} USD*`,
+      `• Desembolso estimado de remate: *${formatUsd(sim.fbDesembolso, { decimals: 2 })} USD*`,
       `• Respaldo histórico Grupo ${config.grupo}: habría igualado o superado el corte ganador en *${sim.backtest.ganadasTotal} de ${sim.backtest.totalEvaluadas} asambleas* realizadas.`,
       ``,
-      `*Comparativa referencial de liquidez:*`,
-      `• Ref. Pandero (${sim.pandero.cuotasRef}c / 50%): ${formatUsd(sim.pandero.desembolso)} USD`,
-      `• Ref. Maquisistema (${sim.maquisistema.cuotasRef}c / ${sim.maquisistema.pctRef}%): ${formatUsd(sim.maquisistema.desembolso)} USD`,
+      `*Comparativa referencial de cuotas y remate:*`,
+      `• Maquisistema (${sim.maquisistema.plazoMeses}m · cuota ${formatUsd(sim.maquisistema.cuotaMensual, { decimals: 2 })}/mes · ${sim.maquisistema.cuotasRef}c): ${formatUsd(sim.maquisistema.desembolso, { decimals: 2 })} USD`,
+      `• Pandero (${sim.pandero.plazoMeses}m · cuota ${formatUsd(sim.pandero.cuotaMensual, { decimals: 2 })}/mes · ${sim.pandero.cuotasRef}c): ${formatUsd(sim.pandero.desembolso, { decimals: 2 })} USD`,
       sim.pandero.ahorroLiquidez > 0
-        ? `• Liquidez preservada con FonBienes: *+${formatUsd(sim.pandero.ahorroLiquidez)} USD*`
+        ? `• Liquidez preservada con FonBienes vs. Pandero: *+${formatUsd(sim.pandero.ahorroLiquidez, { decimals: 2 })} USD*`
         : ``,
       ``,
       `Además, participas cada mes en el sorteo sin adelantar cuotas.`
@@ -58,7 +99,6 @@ export default function SimulatorView({ dataset }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2400);
     } catch {
-      // Fallback for restricted clipboard contexts
       const textarea = document.createElement('textarea');
       textarea.value = msg;
       document.body.appendChild(textarea);
@@ -71,44 +111,56 @@ export default function SimulatorView({ dataset }) {
   };
 
   const sliderPct = ((cuotas - 5) / (66 - 5)) * 100;
+  const sliderActiveColor = isDark ? '#10B981' : '#057c3f';
+  const sliderTrackColor = isDark ? '#1E293B' : '#E2E8F0';
+  const isStandardRange = certificado >= 40000 && certificado <= 80000;
 
   return (
-    <section className="space-y-6 sm:space-y-8">
+    <section className="space-y-5 sm:space-y-7">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.09em] text-slate-400">
-          Herramienta de Cierre Comercial
-        </p>
-        <h1 className="mt-1 text-2xl sm:text-[28px] font-semibold tracking-[-0.025em] text-slate-900">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-50/90 dark:bg-emerald-500/15 border border-brand-200/80 dark:border-emerald-500/30 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-800 dark:text-emerald-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-brand-600 dark:bg-emerald-400" />
+          <span>Herramienta de Cierre Comercial</span>
+        </div>
+        <h1 className="mt-2 text-2xl sm:text-[30px] font-bold tracking-[-0.025em] title-brand-gradient leading-tight">
           Simulador de Liquidez y Remate
         </h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
         {/* Left Column: Advisor Controls */}
-        <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-ambient border border-slate-100/90 space-y-8">
-          {/* Step 1: Certificate */}
+        <div className="lg:col-span-5 surface-card rounded-2xl sm:rounded-3xl p-4 sm:p-7 space-y-7">
           <div>
             <div className="flex items-baseline justify-between gap-2">
-              <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-                1. Valor del Certificado
+              <label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-800 dark:text-emerald-300">
+                1. Monto / Certificado
               </label>
-              <span className="text-sm font-semibold text-slate-900 tabular-nums">
+              <span className="text-base font-bold text-brand-700 dark:text-emerald-400 tabular-nums">
                 {formatUsd(certificado)} USD
               </span>
             </div>
 
-            <div className="mt-3.5 flex flex-wrap gap-1.5">
-              {config.presetCertificates.map((val) => {
-                const isSelected = customCertText === '' && certificado === val;
+            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+              Certificados Fonbienes:{' '}
+              <strong className="font-semibold text-slate-700 dark:text-slate-200">
+                $40k a $80k
+              </strong>{' '}
+              (de $5k en $5k). Selección rápida hasta $100k:
+            </p>
+
+            {/* 2 Clean Rows of 5 Preset Buttons up to $100k */}
+            <div className="mt-3 grid grid-cols-5 gap-1.5">
+              {presetButtons.map((val) => {
+                const isSelected = certificado === val && Number(certInput) === val;
                 return (
                   <button
                     key={val}
                     type="button"
                     onClick={() => handleSelectChip(val)}
-                    className={`px-3.5 py-2 rounded-full text-xs tabular-nums transition-colors ${
+                    className={`py-2 px-1 rounded-xl text-xs tabular-nums transition-all border ${
                       isSelected
-                        ? 'bg-brand-50 text-brand-700 font-semibold'
-                        : 'text-slate-500 hover:text-slate-900 bg-slate-50/70 hover:bg-slate-100 font-medium'
+                        ? 'bg-gradient-to-b from-brand-600 to-brand-700 dark:from-emerald-600 dark:to-brand-600 text-white border-brand-700 dark:border-emerald-500 font-bold shadow-sm shadow-brand-700/20'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-brand-800 dark:hover:text-emerald-300 bg-white dark:bg-slate-800/80 hover:bg-brand-50/70 dark:hover:bg-slate-800 border-brand-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-emerald-500/40 font-medium'
                     }`}
                   >
                     ${val / 1000}k
@@ -117,49 +169,77 @@ export default function SimulatorView({ dataset }) {
               })}
             </div>
 
+            {/* Synchronized Amount Input Box (Up to $300,000 USD) */}
             <div className="mt-4">
-              <label
-                htmlFor="customCertInput"
-                className="block text-xs text-slate-400 mb-1.5"
-              >
-                O ingresa un monto personalizado (USD)
-              </label>
-              <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400">
-                  $
+              <div className="flex items-center justify-between mb-1.5">
+                <label
+                  htmlFor="customCertInput"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-300"
+                >
+                  Monto seleccionado o personalizado (hasta $300,000)
+                </label>
+                <span className="text-[10px] font-semibold text-brand-700 dark:text-emerald-300 bg-brand-50 dark:bg-emerald-500/15 px-2 py-0.5 rounded-full border border-brand-200/70 dark:border-emerald-500/30">
+                  {isStandardRange ? 'Rango estándar' : 'Simulación extendida'}
                 </span>
-                <input
-                  id="customCertInput"
-                  type="number"
-                  min="15000"
-                  max="500000"
-                  step="5000"
-                  value={customCertText}
-                  onChange={handleCustomCertChange}
-                  placeholder="Ej. 90000"
-                  className="w-full pl-8 pr-14 py-2.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 text-sm font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-white focus:border-brand-600 transition-colors tabular-nums"
-                />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  USD
-                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleStepCert(-STEP_USD)}
+                  disabled={certificado <= MIN_SIM_USD}
+                  aria-label="Disminuir $5,000"
+                  className="h-11 w-11 shrink-0 rounded-2xl bg-white dark:bg-slate-800 border border-brand-200/80 dark:border-emerald-500/30 hover:border-brand-400 dark:hover:border-emerald-400 hover:bg-brand-50/60 dark:hover:bg-slate-700/80 disabled:opacity-40 flex items-center justify-center text-brand-700 dark:text-emerald-300 transition-colors"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+
+                <div className="relative flex-1">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-700 dark:text-emerald-400">
+                    $
+                  </span>
+                  <input
+                    id="customCertInput"
+                    type="text"
+                    inputMode="numeric"
+                    value={certInput}
+                    onChange={handleCertInputChange}
+                    onBlur={handleCertInputBlur}
+                    placeholder="40000 - 300000"
+                    className="w-full h-11 pl-8 pr-12 rounded-2xl bg-brand-50/40 dark:bg-slate-900/90 border border-brand-200/90 dark:border-emerald-500/30 text-base font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-brand-600 dark:focus:border-emerald-400 focus:ring-2 focus:ring-brand-500/15 transition-all tabular-nums"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    USD
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleStepCert(STEP_USD)}
+                  disabled={certificado >= MAX_SIM_USD}
+                  aria-label="Aumentar $5,000"
+                  className="h-11 w-11 shrink-0 rounded-2xl bg-white dark:bg-slate-800 border border-brand-200/80 dark:border-emerald-500/30 hover:border-brand-400 dark:hover:border-emerald-400 hover:bg-brand-50/60 dark:hover:bg-slate-700/80 disabled:opacity-40 flex items-center justify-center text-brand-700 dark:text-emerald-300 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
 
           {/* Step 2: Cuotas Slider */}
-          <div className="pt-6 border-t border-slate-100">
+          <div className="pt-6 border-t border-brand-100/80 dark:border-emerald-500/15">
             <div className="flex items-baseline justify-between gap-2 mb-4">
               <label
                 htmlFor="cuotasRange"
-                className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400"
+                className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-800 dark:text-emerald-300"
               >
                 2. Cuotas a Ofertar
               </label>
               <div className="text-right">
-                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 tabular-nums">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight title-brand-gradient tabular-nums">
                   {cuotas}
                 </span>
-                <span className="ml-1 text-xs font-medium text-slate-400">
+                <span className="ml-1 text-xs font-medium text-slate-500 dark:text-slate-400">
                   cuotas ({sim.fbPctPlazo}%)
                 </span>
               </div>
@@ -173,12 +253,11 @@ export default function SimulatorView({ dataset }) {
               value={cuotas}
               onChange={(e) => setCuotas(Number(e.target.value))}
               style={{
-                background: `linear-gradient(to right, #057c3f 0%, #057c3f ${sliderPct}%, #E2E8F0 ${sliderPct}%, #E2E8F0 100%)`
+                background: `linear-gradient(to right, ${sliderActiveColor} 0%, ${sliderActiveColor} ${sliderPct}%, ${sliderTrackColor} ${sliderPct}%, ${sliderTrackColor} 100%)`
               }}
               className="rams-slider"
             />
 
-            {/* Quick Tactile Presets */}
             <div className="mt-4 flex flex-wrap items-center justify-between gap-1.5">
               {[
                 { val: 22, tag: '22c piso reciente' },
@@ -189,10 +268,10 @@ export default function SimulatorView({ dataset }) {
                   key={preset.tag}
                   type="button"
                   onClick={() => setCuotas(preset.val)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] tabular-nums transition-colors ${
+                  className={`px-3 py-1 rounded-full text-[11px] tabular-nums transition-all border ${
                     cuotas === preset.val
-                      ? 'bg-brand-50 text-brand-700 font-semibold'
-                      : 'text-slate-400 hover:text-slate-700 font-medium'
+                      ? 'bg-brand-50 dark:bg-emerald-500/20 text-brand-800 dark:text-emerald-300 border-brand-200 dark:border-emerald-500/40 font-semibold'
+                      : 'text-slate-500 dark:text-slate-400 border-transparent hover:border-brand-100 dark:hover:border-slate-700 hover:text-brand-700 dark:hover:text-emerald-300 font-medium'
                   }`}
                 >
                   {preset.tag}
@@ -203,16 +282,19 @@ export default function SimulatorView({ dataset }) {
         </div>
 
         {/* Right Column: Evidence-Based Financial Output */}
-        <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-ambient border border-slate-100/90 space-y-7">
-          {/* Empirical Backtest Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+        <div className="lg:col-span-7 surface-card rounded-2xl sm:rounded-3xl p-4 sm:p-7 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-brand-100/80 dark:border-emerald-500/15">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-700 dark:text-emerald-400">
                 Respaldo Histórico ({sim.backtest.totalEvaluadas} Asambleas)
               </p>
-              <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                Con <strong className="font-semibold text-slate-900 tabular-nums">{cuotas} cuotas</strong>, habría igualado o superado el corte ganador en{' '}
-                <strong className="font-semibold text-slate-900 tabular-nums">
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Con{' '}
+                <strong className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                  {cuotas} cuotas
+                </strong>
+                , habría igualado o superado el corte ganador en{' '}
+                <strong className="font-semibold text-brand-800 dark:text-emerald-300 tabular-nums">
                   {sim.backtest.ganadasTotal} de {sim.backtest.totalEvaluadas}
                 </strong>{' '}
                 asambleas realizadas.
@@ -220,129 +302,141 @@ export default function SimulatorView({ dataset }) {
             </div>
 
             <span
-              className={`self-start sm:self-center shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold tabular-nums ${
+              className={`self-start sm:self-center shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold tabular-nums border ${
                 sim.backtest.tier === 'high' || sim.backtest.tier === 'competitive'
-                  ? 'bg-brand-50 text-brand-700'
-                  : 'bg-slate-100 text-slate-600'
+                  ? 'bg-brand-50 dark:bg-emerald-500/20 text-brand-800 dark:text-emerald-300 border-brand-200 dark:border-emerald-500/35'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
               }`}
             >
               {sim.backtest.statusLabel} ({sim.backtest.empiricalRate}%)
             </span>
           </div>
 
-          {/* 3 Hero Financial Metrics — Stacks cleanly on mobile so figures NEVER squish */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-50/70">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-                Cuota Base
+          {/* 3 Hero Financial Metrics */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/75 border border-brand-200/70 dark:border-emerald-500/20 shadow-sm">
+              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500 dark:text-slate-400">
+                Cuota Mensual
               </p>
-              <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-                {formatUsd(sim.fbCuotaMensual)}
-                <span className="text-xs font-medium text-slate-400 ml-1">/mes</span>
+              <p className="mt-1.5 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums">
+                {formatUsd(sim.fbCuotaMensual, { decimals: 2 })}
               </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50/70">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-                Desembolso Remate
-              </p>
-              <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-                {formatUsd(sim.fbDesembolso)}
+              <p className="mt-1 text-[10px] text-slate-400 tabular-nums">
+                ×{sim.fbFactor} ÷ {config.plazoMeses} meses
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-brand-50/60">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-700">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/75 border border-brand-200/70 dark:border-emerald-500/20 shadow-sm">
+              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500 dark:text-slate-400">
+                Monto Remate
+              </p>
+              <p className="mt-1.5 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums">
+                {formatUsd(sim.fbDesembolso, { decimals: 2 })}
+              </p>
+              <p className="mt-1 text-[10px] text-slate-400 tabular-nums">
+                {cuotas} cuotas adelantadas
+              </p>
+            </div>
+
+            <div className="col-span-2 sm:col-span-1 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-brand-50 via-brand-50/80 to-brand-100/70 dark:from-emerald-950/70 dark:via-emerald-900/35 dark:to-slate-900/80 border border-brand-300/80 dark:border-emerald-500/40 shadow-sm">
+              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.07em] text-brand-800 dark:text-emerald-300">
                 Liquidez Preservada
               </p>
-              <p className="mt-2 text-2xl font-bold tracking-tight text-brand-700 tabular-nums">
+              <p className="mt-1.5 text-xl sm:text-2xl font-bold tracking-tight text-brand-700 dark:text-emerald-400 tabular-nums">
                 {sim.pandero.ahorroLiquidez >= 0
-                  ? `+${formatUsd(sim.pandero.ahorroLiquidez)}`
-                  : formatUsd(sim.pandero.ahorroLiquidez)}
+                  ? `+${formatUsd(sim.pandero.ahorroLiquidez, { decimals: 2 })}`
+                  : formatUsd(sim.pandero.ahorroLiquidez, { decimals: 2 })}
+              </p>
+              <p className="mt-1 text-[10px] text-brand-700/80 dark:text-emerald-300/80 tabular-nums">
+                vs. ref. Pandero ({sim.pandero.cuotasRef}c)
               </p>
             </div>
           </div>
 
-          {/* Side-by-Side Minimalist Comparison Table (Responsive) */}
+          {/* Side-by-Side Comparison Table */}
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400 mb-2">
-              Comparativa para Certificado de {formatUsd(certificado)} USD
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-800 dark:text-emerald-300 mb-2">
+              Comparativa Exacta para {formatUsd(certificado)} USD
             </p>
             <div className="overflow-x-auto -mx-2 px-2">
-              <table className="w-full text-left border-collapse min-w-[420px]">
+              <table className="w-full text-left border-collapse min-w-[440px]">
                 <thead>
-                  <tr className="border-b border-slate-100 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                  <tr className="border-b border-brand-100 dark:border-emerald-500/20 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
                     <th className="py-2.5 pr-3">Entidad</th>
-                    <th className="py-2.5 px-3 text-right">Plazo</th>
-                    <th className="py-2.5 px-3 text-right">Cuota Base</th>
-                    <th className="py-2.5 px-3 text-right">Oferta</th>
-                    <th className="py-2.5 pl-3 text-right">Desembolso</th>
+                    <th className="py-2.5 px-2 text-right">Plazo</th>
+                    <th className="py-2.5 px-2 text-right">Cuota Mensual</th>
+                    <th className="py-2.5 px-2 text-right">Oferta</th>
+                    <th className="py-2.5 pl-2 text-right">Desembolso Remate</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm tabular-nums">
-                  <tr className="border-b border-slate-50">
-                    <td className="py-3.5 pr-3 font-semibold text-slate-900">
+                  <tr className="border-b border-brand-100/70 dark:border-emerald-500/20 bg-brand-50/40 dark:bg-emerald-950/35">
+                    <td className="py-3.5 pl-2 pr-3 font-bold text-brand-900 dark:text-white rounded-l-xl">
                       FonBienes
                     </td>
-                    <td className="py-3.5 px-3 text-right text-slate-500">
+                    <td className="py-3.5 px-2 text-right text-slate-600 dark:text-slate-300">
                       {config.plazoMeses}m
                     </td>
-                    <td className="py-3.5 px-3 text-right text-slate-700">
-                      {formatUsd(sim.fbCuotaMensual)}
+                    <td className="py-3.5 px-2 text-right font-semibold text-slate-900 dark:text-white">
+                      {formatUsd(sim.fbCuotaMensual, { decimals: 2 })}
                     </td>
-                    <td className="py-3.5 px-3 text-right font-semibold text-brand-700">
+                    <td className="py-3.5 px-2 text-right font-semibold text-brand-700 dark:text-emerald-400">
                       {cuotas}c ({sim.fbPctPlazo}%)
                     </td>
-                    <td className="py-3.5 pl-3 text-right font-bold text-slate-900">
-                      {formatUsd(sim.fbDesembolso)}
+                    <td className="py-3.5 pl-2 pr-2 text-right font-bold text-brand-800 dark:text-emerald-300 rounded-r-xl">
+                      {formatUsd(sim.fbDesembolso, { decimals: 2 })}
                     </td>
                   </tr>
 
-                  <tr className="border-b border-slate-50 text-slate-500">
-                    <td className="py-3.5 pr-3 font-medium">
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+                    <td className="py-3.5 pl-2 pr-3 font-medium text-slate-700 dark:text-slate-300">
                       Maquisistema <span className="text-xs text-slate-400">(ref.)</span>
                     </td>
-                    <td className="py-3.5 px-3 text-right">
+                    <td className="py-3.5 px-2 text-right">
                       {sim.maquisistema.plazoMeses}m
                     </td>
-                    <td className="py-3.5 px-3 text-right">
-                      {formatUsd(sim.maquisistema.cuotaMensual)}
+                    <td className="py-3.5 px-2 text-right font-medium text-slate-700 dark:text-slate-300">
+                      {formatUsd(sim.maquisistema.cuotaMensual, { decimals: 2 })}
                     </td>
-                    <td className="py-3.5 px-3 text-right">
+                    <td className="py-3.5 px-2 text-right">
                       {sim.maquisistema.cuotasRef}c ({sim.maquisistema.pctRef}%)
                     </td>
-                    <td className="py-3.5 pl-3 text-right font-medium text-slate-700">
-                      {formatUsd(sim.maquisistema.desembolso)}
+                    <td className="py-3.5 pl-2 pr-2 text-right font-semibold text-slate-700 dark:text-slate-200">
+                      {formatUsd(sim.maquisistema.desembolso, { decimals: 2 })}
                     </td>
                   </tr>
 
-                  <tr className="text-slate-500">
-                    <td className="py-3.5 pr-3 font-medium">
+                  <tr className="text-slate-600 dark:text-slate-400">
+                    <td className="py-3.5 pl-2 pr-3 font-medium text-slate-700 dark:text-slate-300">
                       Pandero <span className="text-xs text-slate-400">(ref.)</span>
                     </td>
-                    <td className="py-3.5 px-3 text-right">
+                    <td className="py-3.5 px-2 text-right">
                       {sim.pandero.plazoMeses}m
                     </td>
-                    <td className="py-3.5 px-3 text-right">
-                      {formatUsd(sim.pandero.cuotaMensual)}
+                    <td className="py-3.5 px-2 text-right font-medium text-slate-700 dark:text-slate-300">
+                      {formatUsd(sim.pandero.cuotaMensual, { decimals: 2 })}
                     </td>
-                    <td className="py-3.5 px-3 text-right">
+                    <td className="py-3.5 px-2 text-right">
                       {sim.pandero.cuotasRef}c ({sim.pandero.pctRef}%)
                     </td>
-                    <td className="py-3.5 pl-3 text-right font-medium text-slate-700">
-                      {formatUsd(sim.pandero.desembolso)}
+                    <td className="py-3.5 pl-2 pr-2 text-right font-semibold text-slate-700 dark:text-slate-200">
+                      {formatUsd(sim.pandero.desembolso, { decimals: 2 })}
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
+
+            <p className="mt-2.5 text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed tabular-nums">
+              Fórmulas aplicadas: FonBienes (Monto × 1.2124 ÷ 132m) · Maquisistema (Monto × 1.295 ÷ 150m) · Pandero (Monto × 1.287 ÷ 120m).
+            </p>
           </div>
 
           {/* Primary Executive Action */}
           <button
             type="button"
             onClick={handleCopyPitch}
-            className="w-full py-3.5 px-5 rounded-2xl bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm"
+            className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-brand-600 to-brand-700 dark:from-emerald-600 dark:to-brand-600 hover:from-brand-700 hover:to-brand-800 active:scale-[0.99] text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-brand-700/20"
           >
             {copied ? (
               <>
@@ -361,4 +455,3 @@ export default function SimulatorView({ dataset }) {
     </section>
   );
 }
-

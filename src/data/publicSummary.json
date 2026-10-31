@@ -10,6 +10,11 @@
     "grupo": "001",
     "plazoMeses": 132,
     "plazoAnios": 11,
+    "factorTotal": 1.2124,
+    "certificadoMinEst": 40000,
+    "certificadoMaxEst": 80000,
+    "certificadoPaso": 5000,
+    "simuladorMaxUsd": 300000,
     "presetCertificates": [
       40000,
       45000,
@@ -26,12 +31,14 @@
       "pandero": {
         "nombre": "Pandero Inmuebles",
         "plazoMeses": 120,
+        "factorTotal": 1.287,
         "cuotasRemateRef": 60,
         "pctPlazoRef": 50
       },
       "maquisistema": {
         "nombre": "Maquisistema",
         "plazoMeses": 150,
+        "factorTotal": 1.295,
         "cuotasRemateRef": 65,
         "pctPlazoRef": 43.3
       }
@@ -52,7 +59,23 @@
       "pctPlazoMin": 50,
       "capitalSorteo": 80000,
       "capitalRemate": 40000,
-      "capitalEntregado": 120000
+      "capitalEntregado": 120000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 80000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 66,
+          "pctPlazo": 50,
+          "certificado": 40000
+        }
+      ]
     },
     {
       "nro": 2,
@@ -68,7 +91,23 @@
       "pctPlazoMin": 7.6,
       "capitalSorteo": 40000,
       "capitalRemate": 80000,
-      "capitalEntregado": 120000
+      "capitalEntregado": 120000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 40000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 10,
+          "pctPlazo": 7.6,
+          "certificado": 80000
+        }
+      ]
     },
     {
       "nro": 3,
@@ -84,7 +123,23 @@
       "pctPlazoMin": 11.4,
       "capitalSorteo": 40000,
       "capitalRemate": 50000,
-      "capitalEntregado": 90000
+      "capitalEntregado": 90000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 40000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 15,
+          "pctPlazo": 11.4,
+          "certificado": 50000
+        }
+      ]
     },
     {
       "nro": 4,
@@ -100,7 +155,23 @@
       "pctPlazoMin": 15.9,
       "capitalSorteo": 50000,
       "capitalRemate": 80000,
-      "capitalEntregado": 130000
+      "capitalEntregado": 130000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 50000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 21,
+          "pctPlazo": 15.9,
+          "certificado": 80000
+        }
+      ]
     },
     {
       "nro": 5,
@@ -116,7 +187,23 @@
       "pctPlazoMin": 23.5,
       "capitalSorteo": 50000,
       "capitalRemate": 50000,
-      "capitalEntregado": 100000
+      "capitalEntregado": 100000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 50000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 31,
+          "pctPlazo": 23.5,
+          "certificado": 50000
+        }
+      ]
     },
     {
       "nro": 6,
@@ -132,7 +219,23 @@
       "pctPlazoMin": 27.3,
       "capitalSorteo": 60000,
       "capitalRemate": 45000,
-      "capitalEntregado": 105000
+      "capitalEntregado": 105000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 60000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 36,
+          "pctPlazo": 27.3,
+          "certificado": 45000
+        }
+      ]
     },
     {
       "nro": 7,
@@ -148,7 +251,30 @@
       "pctPlazoMin": 31.1,
       "capitalSorteo": 80000,
       "capitalRemate": 140000,
-      "capitalEntregado": 220000
+      "capitalEntregado": 220000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 80000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 41,
+          "pctPlazo": 31.1,
+          "certificado": 70000
+        },
+        {
+          "item": 3,
+          "modalidad": "REMATE",
+          "cuotas": 41,
+          "pctPlazo": 31.1,
+          "certificado": 70000
+        }
+      ]
     },
     {
       "nro": 8,
@@ -164,7 +290,23 @@
       "pctPlazoMin": 20.5,
       "capitalSorteo": 40000,
       "capitalRemate": 80000,
-      "capitalEntregado": 120000
+      "capitalEntregado": 120000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 40000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 27,
+          "pctPlazo": 20.5,
+          "certificado": 80000
+        }
+      ]
     },
     {
       "nro": 9,
@@ -180,7 +322,44 @@
       "pctPlazoMin": 25.8,
       "capitalSorteo": 60000,
       "capitalRemate": 240000,
-      "capitalEntregado": 300000
+      "capitalEntregado": 300000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 60000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 45,
+          "pctPlazo": 34.1,
+          "certificado": 70000
+        },
+        {
+          "item": 3,
+          "modalidad": "REMATE",
+          "cuotas": 45,
+          "pctPlazo": 34.1,
+          "certificado": 70000
+        },
+        {
+          "item": 4,
+          "modalidad": "REMATE",
+          "cuotas": 34,
+          "pctPlazo": 25.8,
+          "certificado": 50000
+        },
+        {
+          "item": 5,
+          "modalidad": "REMATE",
+          "cuotas": 34,
+          "pctPlazo": 25.8,
+          "certificado": 50000
+        }
+      ]
     },
     {
       "nro": 10,
@@ -196,7 +375,37 @@
       "pctPlazoMin": 16.7,
       "capitalSorteo": 50000,
       "capitalRemate": 180000,
-      "capitalEntregado": 230000
+      "capitalEntregado": 230000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 50000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 25,
+          "pctPlazo": 18.9,
+          "certificado": 70000
+        },
+        {
+          "item": 3,
+          "modalidad": "REMATE",
+          "cuotas": 22,
+          "pctPlazo": 16.7,
+          "certificado": 40000
+        },
+        {
+          "item": 4,
+          "modalidad": "REMATE",
+          "cuotas": 22,
+          "pctPlazo": 16.7,
+          "certificado": 70000
+        }
+      ]
     },
     {
       "nro": 11,
@@ -212,7 +421,30 @@
       "pctPlazoMin": 21.2,
       "capitalSorteo": 55000,
       "capitalRemate": 150000,
-      "capitalEntregado": 205000
+      "capitalEntregado": 205000,
+      "resultadosTitulares": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 55000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "cuotas": 28,
+          "pctPlazo": 21.2,
+          "certificado": 75000
+        },
+        {
+          "item": 3,
+          "modalidad": "REMATE",
+          "cuotas": 28,
+          "pctPlazo": 21.2,
+          "certificado": 75000
+        }
+      ]
     }
   ]
 }
