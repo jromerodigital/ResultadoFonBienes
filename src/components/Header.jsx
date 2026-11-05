@@ -1,10 +1,11 @@
-import React from 'react';
-import { BarChart3, SlidersHorizontal, Layers, ShieldCheck } from 'lucide-react';
+  import React from 'react';
+import { BarChart3, SlidersHorizontal, Layers, ShieldCheck, Compass, LogOut, User } from 'lucide-react';
 import FonbienesLogo from './FonbienesLogo';
 import ThemeToggle from './ThemeToggle';
 
 const NAV_ITEMS = [
   { id: 'executive', label: 'Panorama', icon: BarChart3 },
+  { id: 'strategy', label: 'Estrategia', icon: Compass },
   { id: 'simulator', label: 'Simulador', icon: SlidersHorizontal },
   { id: 'history', label: 'Asambleas', icon: Layers }
 ];
@@ -14,7 +15,9 @@ export default function Header({
   onSelectView,
   meta,
   programa,
-  grupo
+  grupo,
+  currentUser,
+  onLogout
 }) {
   return (
     <>
@@ -77,12 +80,32 @@ export default function Header({
             })}
           </nav>
 
-          {/* Right Utility Cluster: SMV Verification + Unobtrusive Theme Toggle */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold text-brand-800 dark:text-emerald-300 bg-gradient-to-r from-brand-50 to-white dark:from-emerald-950/60 dark:to-slate-900/80 border border-brand-200/80 dark:border-emerald-500/30 shadow-sm">
+          {/* Right Utility Cluster: User/Logout + SMV Verification + Theme Toggle */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {currentUser && (
+              <div className="flex items-center gap-1 pl-1.5 pr-1 py-1 rounded-full bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-xs">
+                <div className="w-5 h-5 rounded-full bg-brand-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
+                  {currentUser.username?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <span className="hidden sm:inline font-semibold text-slate-700 dark:text-slate-200 text-xs px-1">
+                  {currentUser.username}
+                </span>
+                {onLogout && (
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    title="Cerrar sesión"
+                    className="p-1 rounded-full text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold text-brand-800 dark:text-emerald-300 bg-gradient-to-r from-brand-50 to-white dark:from-emerald-950/60 dark:to-slate-900/80 border border-brand-200/80 dark:border-emerald-500/30 shadow-sm">
               <ShieldCheck className="w-3.5 h-3.5 text-brand-600 dark:text-emerald-400 shrink-0" />
-              <span className="hidden lg:inline">Supervisado SMV</span>
-              <span className="lg:hidden">SMV</span>
+              <span>Supervisado SMV</span>
             </div>
 
             <ThemeToggle />

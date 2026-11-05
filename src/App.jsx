@@ -3,15 +3,45 @@ import { ThemeProvider } from './context/ThemeContext';
 import Header from './components/Header';
 import FonbienesLogo from './components/FonbienesLogo';
 import ExecutiveView from './components/ExecutiveView';
+import StrategyView from './components/StrategyView';
 import SimulatorView from './components/SimulatorView';
 import HistoryView from './components/HistoryView';
+import LoginView from './components/LoginView';
 import publicSummary from './data/publicSummary.json';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem('fonbienes_auth') === 'true';
+  });
+  const [currentUser, setCurrentUser] = useState(() => {
+    const user = sessionStorage.getItem('fonbienes_user');
+    return user ? { username: user } : null;
+  });
+
   const [activeView, setActiveView] = useState('executive');
   const [periodFilter, setPeriodFilter] = useState('ALL');
 
   const dataset = publicSummary;
+
+  const handleLoginSuccess = (user) => {
+    setIsAuthenticated(true);
+    setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('fonbienes_auth');
+    sessionStorage.removeItem('fonbienes_user');
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider>
+        <LoginView onLoginSuccess={handleLoginSuccess} />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider>
@@ -25,6 +55,8 @@ export default function App() {
           meta={dataset.meta}
           programa={dataset.config.programa}
           grupo={dataset.config.grupo}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 pt-5 sm:pt-8 pb-24 md:pb-14">
@@ -40,7 +72,29 @@ export default function App() {
             />
           )}
 
-          {activeView === 'simulator' && <SimulatorView dataset={dataset} />}
+          {activeView === 'strategy' && (
+            <StrategyView
+              dataset={dataset}
+              onOpenSimulator={() => {
+                setActiveView('simulator');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onOpenHistory={() => {
+                setActiveView('history');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          )}
+
+          {activeView === 'simulator' && (
+            <SimulatorView
+              dataset={dataset}
+              onOpenStrategy={() => {
+                setActiveView('strategy');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          )}
 
           {activeView === 'history' && <HistoryView dataset={dataset} />}
         </main>

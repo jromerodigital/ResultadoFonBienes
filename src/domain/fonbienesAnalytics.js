@@ -265,3 +265,171 @@ export function simulateCommercialScenario(dataset, certificadoUsd, cuotasOferta
     }
   };
 }
+
+export const EMBUDO_COMPETENCIA = {
+  totalGrupo: 396,
+  participantesRemate: 40,
+  pctParticipantes: 10.1,
+  asociadosPlanificacion: 356,
+  pctPlanificacion: 89.9,
+  ofertasBajas: 28,
+  pctBajas: 70.0,
+  ofertasCompetitivas: 12,
+  pctCompetitivas: 30.0
+};
+
+export const FASES_ESCALERA = [
+  {
+    id: 1,
+    rangoMeses: 'Meses 1 a 4',
+    mesMin: 1,
+    mesMax: 4,
+    minCuotas: 28,
+    maxCuotas: 30,
+    cuotasRef: 29,
+    nombre: 'Aceleración Inmediata',
+    perfil: 'Asociados con capital o liquidez inmediata',
+    badge: 'Alta Demanda Inicial',
+    descripcion: 'Pico inicial del grupo. Quienes tienen capital suficiente ofertan para asegurar su corte en las primeras asambleas.'
+  },
+  {
+    id: 2,
+    rangoMeses: 'Meses 4 a 9',
+    mesMin: 4,
+    mesMax: 9,
+    minCuotas: 24,
+    maxCuotas: 28,
+    cuotasRef: 26,
+    nombre: 'Reducción Progresiva',
+    perfil: 'Asociados con ahorro planificado a corto plazo',
+    badge: 'Salida de Ganadores',
+    descripcion: 'Los postores de corte alto ya adjudicaron y no vuelven a competir. El umbral de cuotas desciende consistentemente.'
+  },
+  {
+    id: 3,
+    rangoMeses: 'Meses 9 a 15',
+    mesMin: 9,
+    mesMax: 15,
+    minCuotas: 15,
+    maxCuotas: 24,
+    cuotasRef: 20,
+    nombre: 'Ventana Estratégica Óptima',
+    perfil: 'Planificadores que acumularon cuotas y participaron de sorteos',
+    badge: 'Punto Dulce de Entrada',
+    descripcion: 'Equilibrio perfecto: el cliente ahorró meses participando gratis en el sorteo y ahora adjudica con mucho menor desembolso.'
+  },
+  {
+    id: 4,
+    rangoMeses: 'Meses 15 a 24',
+    mesMin: 15,
+    mesMax: 24,
+    minCuotas: 10,
+    maxCuotas: 15,
+    cuotasRef: 12,
+    nombre: 'Adjudicación Accesible',
+    perfil: 'Ahorro programado con mínimo esfuerzo de liquidez',
+    badge: 'Baja Competencia',
+    descripcion: 'Mínima competencia de remate. Adjudicación rápida con esfuerzo de capital reducido.'
+  },
+  {
+    id: 5,
+    rangoMeses: 'Meses 24+',
+    mesMin: 24,
+    mesMax: 120,
+    minCuotas: 1,
+    maxCuotas: 10,
+    cuotasRef: 5,
+    nombre: 'Suelo de Remate',
+    perfil: 'Adjudicación natural con posturas testimoniales',
+    badge: 'Consolidación',
+    descripcion: 'Las ofertas se reducen al mínimo. La gran mayoría del grupo ya está adjudicada o continúa por sorteo mensual.'
+  }
+];
+
+export function calculateCommercialPitchPlan({
+  certificadoUsd,
+  plazoMeses = 120,
+  hasDiscount = true,
+  cuotasRemate = 28
+}) {
+  const coef = INTERNAL_RATES.fonbienes.coef;
+  const cuotaMensual = calculateMonthlyInstallment(certificadoUsd, coef, plazoMeses);
+
+  // Inscripción base: 4% + IGV (18%) = 4.72% del certificado
+  const inscripcionRegular = roundToCents(certificadoUsd * 0.0472);
+  const descuentoInscripcion = hasDiscount ? roundToCents(inscripcionRegular * 0.5) : 0;
+  const inscripcionEfectiva = roundToCents(inscripcionRegular - descuentoInscripcion);
+
+  // Primer pago para ingresar al fondo
+  const primerPago = roundToCents(cuotaMensual + inscripcionEfectiva);
+  const primerPagoSinDscto = roundToCents(cuotaMensual + inscripcionRegular);
+
+  // Total a devolver al finalizar el plazo
+  const totalCuotas = roundToCents(cuotaMensual * plazoMeses);
+  const totalDevolver = roundToCents(totalCuotas + inscripcionEfectiva);
+
+  // Costo total de financiamiento
+  const costoTotal = roundToCents(totalDevolver - certificadoUsd);
+  const costoPctCertificado = Number(((costoTotal / certificadoUsd) * 100).toFixed(1));
+
+  // Remate estimado
+  const desembolsoRemate = roundToCents(cuotasRemate * cuotaMensual);
+  const pctPlazoRemate = Number(((cuotasRemate / plazoMeses) * 100).toFixed(1));
+
+  // Comparativa con Crédito Hipotecario Bancario tradicional en USD (TEA referencial 9.8% anual en USD)
+  const tasaMensual = 0.098 / 12;
+  const cuotaBancaria = roundUpToCents(
+    (certificadoUsd * tasaMensual) / (1 - Math.pow(1 + tasaMensual, -plazoMeses))
+  );
+  const totalBanco = roundToCents(cuotaBancaria * plazoMeses);
+  const interesesBanco = roundToCents(totalBanco - certificadoUsd);
+  const cuotaInicialBanco = roundToCents(certificadoUsd * 0.15); // 15% cuota inicial
+  const ahorroInteresesVsBanco = roundToCents(interesesBanco - costoTotal);
+
+  // Comparativa Competencia directa (Pandero 120m / Maquisistema 150m)
+  const panderoCuota = calculateMonthlyInstallment(certificadoUsd, INTERNAL_RATES.pandero.coef, 120);
+  const panderoRemateRef = roundToCents(60 * panderoCuota);
+  const ahorroRemateVsPandero = roundToCents(panderoRemateRef - desembolsoRemate);
+
+  const maquiCuota = calculateMonthlyInstallment(certificadoUsd, INTERNAL_RATES.maquisistema.coef, 150);
+  const maquiRemateRef = roundToCents(65 * maquiCuota);
+  const ahorroRemateVsMaqui = roundToCents(maquiRemateRef - desembolsoRemate);
+
+  return {
+    certificadoUsd,
+    plazoMeses,
+    hasDiscount,
+    cuotaMensual,
+    inscripcionRegular,
+    descuentoInscripcion,
+    inscripcionEfectiva,
+    primerPago,
+    primerPagoSinDscto,
+    totalCuotas,
+    totalDevolver,
+    costoTotal,
+    costoPctCertificado,
+    cuotasRemate,
+    desembolsoRemate,
+    pctPlazoRemate,
+    banco: {
+      cuotaMensual: cuotaBancaria,
+      totalDevolver: totalBanco,
+      intereses: interesesBanco,
+      cuotaInicial: cuotaInicialBanco,
+      ahorroVsFonbienes: ahorroInteresesVsBanco
+    },
+    pandero: {
+      cuotaMensual: panderoCuota,
+      cuotasRef: 60,
+      desembolso: panderoRemateRef,
+      ahorroVsFonbienes: ahorroRemateVsPandero
+    },
+    maquisistema: {
+      cuotaMensual: maquiCuota,
+      cuotasRef: 65,
+      desembolso: maquiRemateRef,
+      ahorroVsFonbienes: ahorroRemateVsMaqui
+    }
+  };
+}

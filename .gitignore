@@ -15,3 +15,8 @@ Resultados/
 *.log
 .vercel
 .netlify
+
+# Media & Working Notes
+*.mp4
+*.mov
+explicacionfc*.jpeg
