@@ -388,7 +388,7 @@ export function calculateCommercialPitchPlan({
 
   // Comparativa Competencia directa (Pandero 120m / Maquisistema 150m)
   const panderoCuota = calculateMonthlyInstallment(certificadoUsd, INTERNAL_RATES.pandero.coef, 120);
-  const panderoRemateRef = roundToCents(60 * panderoCuota);
+  const panderoRemateRef = roundToCents(50 * panderoCuota);
   const ahorroRemateVsPandero = roundToCents(panderoRemateRef - desembolsoRemate);
 
   const maquiCuota = calculateMonthlyInstallment(certificadoUsd, INTERNAL_RATES.maquisistema.coef, 150);
@@ -421,7 +421,7 @@ export function calculateCommercialPitchPlan({
     },
     pandero: {
       cuotaMensual: panderoCuota,
-      cuotasRef: 60,
+      cuotasRef: 50,
       desembolso: panderoRemateRef,
       ahorroVsFonbienes: ahorroRemateVsPandero
     },

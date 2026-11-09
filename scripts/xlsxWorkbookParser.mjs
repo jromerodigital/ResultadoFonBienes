@@ -389,7 +389,7 @@ export function parseFonbienesWorkbook(arrayBuffer, sourceMeta = {}) {
     // Parse optional Sheet 3 (Benchmark Competencia) to extract competitor terms & reference certificates
     const benchmarkSheet = sheets.find((s) => s.normalizedName.includes('BENCHMARK'));
     let panderoPlazo = 120;
-    let panderoCuotas = 60;
+    let panderoCuotas = 50;
     let maquiPlazo = 150;
     let maquiCuotas = 65;
     let presetCertificates = [

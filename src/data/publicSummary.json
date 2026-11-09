@@ -30,8 +30,8 @@
       "pandero": {
         "nombre": "Pandero Inmuebles",
         "plazoMeses": 120,
-        "cuotasRemateRef": 60,
-        "pctPlazoRef": 50
+        "cuotasRemateRef": 50,
+        "pctPlazoRef": 41.7
       },
       "maquisistema": {
         "nombre": "Maquisistema",

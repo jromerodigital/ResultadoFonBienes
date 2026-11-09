@@ -410,7 +410,7 @@ export default function StrategyView({ dataset, onOpenSimulator, onOpenHistory }
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-500">Pandero Inmuebles:</span>
-              <span className="font-bold text-rose-600">60 cuotas (~50% plazo)</span>
+              <span className="font-bold text-rose-600">50 cuotas (~42% plazo)</span>
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-500">Maquisistema:</span>
