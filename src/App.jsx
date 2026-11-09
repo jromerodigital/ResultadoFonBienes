@@ -38,7 +38,10 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <ThemeProvider>
-        <LoginView onLoginSuccess={handleLoginSuccess} />
+        <LoginView
+          onLoginSuccess={handleLoginSuccess}
+          totalAsambleas={dataset?.meta?.totalAsambleas || dataset?.asambleas?.length || 12}
+        />
       </ThemeProvider>
     );
   }

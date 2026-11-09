@@ -3,7 +3,7 @@ import { ShieldCheck, BarChart3, Compass, CheckCircle2, Building2 } from 'lucide
 import FonbienesLogo from './FonbienesLogo';
 import SignInCard from './ui/sign-in-card-2';
 
-export default function LoginView({ onLoginSuccess }) {
+export default function LoginView({ onLoginSuccess, totalAsambleas = 12 }) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-3 sm:p-6 lg:p-8 relative overflow-hidden bg-gradient-to-br from-[#F5FAF7] via-[#EAF5EF] to-[#E3F0E9] dark:from-[#071114] dark:via-[#091618] dark:to-[#050D11]">
       {/* Background radial ambient lights */}
@@ -47,7 +47,7 @@ export default function LoginView({ onLoginSuccess }) {
               <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
                 <BarChart3 className="w-5 h-5 text-emerald-300 shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-xs font-bold text-white">11 Asambleas Consolidadas</div>
+                  <div className="text-xs font-bold text-white">{totalAsambleas} Asambleas Consolidadas</div>
                   <div className="text-[11px] text-emerald-100/70">
                     Estadísticas reales de corte ganador, sorteos y capital adjudicado.
                   </div>

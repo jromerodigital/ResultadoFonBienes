@@ -1,7 +1,7 @@
 {
   "meta": {
-    "totalAsambleas": 11,
-    "ultimaActualizacion": "Oct 2026"
+    "totalAsambleas": 12,
+    "ultimaActualizacion": "Nov 2026"
   },
   "config": {
     "empresa": "Fonbienes Perú E.A.F.C. S.A.",
@@ -788,6 +788,97 @@
           "cuotas": 17,
           "pctPlazo": 12.9,
           "certificado": 50000
+        }
+      ]
+    },
+    {
+      "nro": 12,
+      "fechaFormatted": "07/11/2026",
+      "mesLabel": "Nov 2026",
+      "mesShort": "Nov 26",
+      "totalTitulares": 5,
+      "totalSuplentes": 3,
+      "titularesSorteo": 1,
+      "titularesRemate": 4,
+      "minCuotasGanadoras": 25,
+      "maxCuotasGanadoras": 36,
+      "avgCuotasGanadoras": 29.3,
+      "pctPlazoMin": 18.9,
+      "capitalSorteo": 80000,
+      "capitalRemate": 270000,
+      "capitalEntregado": 350000,
+      "resultados": [
+        {
+          "item": 1,
+          "modalidad": "SORTEO",
+          "tipoAdj": "TITULAR",
+          "isTitular": true,
+          "cuotas": 0,
+          "pctPlazo": 0,
+          "certificado": 80000
+        },
+        {
+          "item": 2,
+          "modalidad": "REMATE",
+          "tipoAdj": "TITULAR",
+          "isTitular": true,
+          "cuotas": 36,
+          "pctPlazo": 27.3,
+          "certificado": 80000
+        },
+        {
+          "item": 3,
+          "modalidad": "REMATE",
+          "tipoAdj": "TITULAR",
+          "isTitular": true,
+          "cuotas": 30,
+          "pctPlazo": 22.7,
+          "certificado": 80000
+        },
+        {
+          "item": 4,
+          "modalidad": "REMATE",
+          "tipoAdj": "TITULAR",
+          "isTitular": true,
+          "cuotas": 26,
+          "pctPlazo": 19.7,
+          "certificado": 55000
+        },
+        {
+          "item": 5,
+          "modalidad": "REMATE",
+          "tipoAdj": "TITULAR",
+          "isTitular": true,
+          "cuotas": 25,
+          "pctPlazo": 18.9,
+          "certificado": 55000
+        },
+        {
+          "item": 6,
+          "modalidad": "REMATE",
+          "tipoAdj": "SUPLENTE 1",
+          "isTitular": false,
+          "cuotas": 23,
+          "pctPlazo": 17.4,
+          "certificado": 60000
+        },
+        {
+          "item": 7,
+          "modalidad": "REMATE",
+          "tipoAdj": "SUPLENTE 2",
+          "isTitular": false,
+          "cuotas": 20,
+          "pctPlazo": 15.2,
+          "certificado": 70000
+        },
+        {
+          "item": 8,
+          "modalidad": "REMATE",
+          "tipoAdj": "SUPLENTE 3",
+          "isTitular": false,
+          "cuotas": 20,
+          "pctPlazo": 15.2,
+          "certificado": 70000
         }
       ]
     }
