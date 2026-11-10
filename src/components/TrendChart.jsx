@@ -115,8 +115,8 @@ function TrendChartPlot({
   // Theme-adaptive SVG colors
   const primaryStroke = isDark ? '#34D399' : '#057c3f';
   const gridStroke = isDark ? 'rgba(148, 163, 184, 0.12)' : '#ECF4EF';
-  const maquiRefStroke = isDark ? '#475569' : '#CBD5E1';
-  const panderoRefStroke = isDark ? '#64748B' : '#94A3B8';
+  const maquiRefStroke = isDark ? '#F87171' : '#DC2626'; // Línea roja para Maquisistema
+  const panderoRefStroke = isDark ? '#60A5FA' : '#2563EB'; // Línea azul para Pandero
   const hoverLineStroke = isDark ? 'rgba(52, 211, 153, 0.35)' : '#B0EACB';
   const nodeBaseFill = isDark ? '#0B1319' : '#ffffff';
   const sorteoBarFill = isDark ? 'rgba(52, 211, 153, 0.36)' : '#B0EACB';
@@ -311,24 +311,79 @@ function TrendChartPlot({
           {/* Mode 1: Smooth Monotone Line + Competitor Ceilings */}
           {mode === 'cuotas' && (
             <>
-              <line
-                x1={pad.left}
-                x2={width - pad.right}
-                y1={chartData.yScale(maquisistema.cuotasRemateRef)}
-                y2={chartData.yScale(maquisistema.cuotasRemateRef)}
-                stroke={maquiRefStroke}
-                strokeWidth="1.25"
-                strokeDasharray="2 4"
-              />
-              <line
-                x1={pad.left}
-                x2={width - pad.right}
-                y1={chartData.yScale(pandero.cuotasRemateRef)}
-                y2={chartData.yScale(pandero.cuotasRemateRef)}
-                stroke={panderoRefStroke}
-                strokeWidth="1.25"
-                strokeDasharray="5 5"
-              />
+              {/* Línea Roja: Maquisistema */}
+              <g className="transition-opacity">
+                <line
+                  x1={pad.left}
+                  x2={width - pad.right}
+                  y1={chartData.yScale(maquisistema.cuotasRemateRef)}
+                  y2={chartData.yScale(maquisistema.cuotasRemateRef)}
+                  stroke={maquiRefStroke}
+                  strokeWidth="2"
+                  strokeDasharray="6 4"
+                />
+                <g transform={`translate(${width - pad.right}, ${chartData.yScale(maquisistema.cuotasRemateRef)})`}>
+                  <rect
+                    x={isCompact ? "-88" : "-130"}
+                    y="-17"
+                    width={isCompact ? "88" : "130"}
+                    height="15"
+                    rx="3.5"
+                    fill={isDark ? 'rgba(30, 27, 36, 0.92)' : 'rgba(254, 242, 242, 0.95)'}
+                    stroke={maquiRefStroke}
+                    strokeWidth="0.8"
+                    strokeOpacity="0.5"
+                  />
+                  <text
+                    x="-5"
+                    y="-5.5"
+                    textAnchor="end"
+                    fill={maquiRefStroke}
+                    className="text-[10px] font-bold tabular-nums"
+                  >
+                    {isCompact
+                      ? `Maqui (${maquisistema.cuotasRemateRef}c)`
+                      : `Ref. Maquisistema (${maquisistema.cuotasRemateRef}c)`}
+                  </text>
+                </g>
+              </g>
+
+              {/* Línea Azul: Pandero */}
+              <g className="transition-opacity">
+                <line
+                  x1={pad.left}
+                  x2={width - pad.right}
+                  y1={chartData.yScale(pandero.cuotasRemateRef)}
+                  y2={chartData.yScale(pandero.cuotasRemateRef)}
+                  stroke={panderoRefStroke}
+                  strokeWidth="2"
+                  strokeDasharray="6 4"
+                />
+                <g transform={`translate(${width - pad.right}, ${chartData.yScale(pandero.cuotasRemateRef)})`}>
+                  <rect
+                    x={isCompact ? "-82" : "-112"}
+                    y="-17"
+                    width={isCompact ? "82" : "112"}
+                    height="15"
+                    rx="3.5"
+                    fill={isDark ? 'rgba(23, 32, 51, 0.92)' : 'rgba(239, 246, 255, 0.95)'}
+                    stroke={panderoRefStroke}
+                    strokeWidth="0.8"
+                    strokeOpacity="0.5"
+                  />
+                  <text
+                    x="-5"
+                    y="-5.5"
+                    textAnchor="end"
+                    fill={panderoRefStroke}
+                    className="text-[10px] font-bold tabular-nums"
+                  >
+                    {isCompact
+                      ? `Pandero (${pandero.cuotasRemateRef}c)`
+                      : `Ref. Pandero (${pandero.cuotasRemateRef}c)`}
+                  </text>
+                </g>
+              </g>
 
               {chartData.areaPath && (
                 <path d={chartData.areaPath} fill={`url(#${gradientId})`} />
@@ -577,7 +632,7 @@ function TrendChartPlot({
               top: `${Math.max(8, activeItem.y - 12)}px`,
               transform: 'translate(-50%, -100%)'
             }}
-            className="pointer-events-none absolute z-20 w-52 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-3.5 shadow-tooltip border border-brand-200/80 dark:border-emerald-500/35 transition-all duration-150"
+            className="pointer-events-none absolute z-20 w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-3.5 shadow-tooltip border border-brand-200/80 dark:border-emerald-500/35 transition-all duration-150"
           >
             <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-brand-700 dark:text-emerald-400">
               <span>Asamblea {activeItem.asamblea.nro}</span>
@@ -587,19 +642,48 @@ function TrendChartPlot({
             </div>
 
             {mode === 'cuotas' && (
-              <div className="mt-1.5">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-xl font-bold text-slate-900 dark:text-white tabular-nums">
-                    {activeItem.asamblea.minCuotasGanadoras} cuotas
-                  </span>
-                  <span className="text-xs font-semibold text-brand-700 dark:text-emerald-400 tabular-nums">
-                    ({activeItem.asamblea.pctPlazoMin}%)
-                  </span>
+              <div className="mt-1.5 space-y-2">
+                <div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xl font-bold text-slate-900 dark:text-white tabular-nums">
+                      {activeItem.asamblea.minCuotasGanadoras} cuotas
+                    </span>
+                    <span className="text-xs font-semibold text-brand-700 dark:text-emerald-400 tabular-nums">
+                      ({activeItem.asamblea.pctPlazoMin}%)
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
+                    {activeItem.asamblea.titularesRemate} titular(es) por remate ·{' '}
+                    {formatUsd(activeItem.asamblea.capitalEntregado, { compact: true })} total
+                  </p>
                 </div>
-                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
-                  {activeItem.asamblea.titularesRemate} titular(es) por remate ·{' '}
-                  {formatUsd(activeItem.asamblea.capitalEntregado, { compact: true })} total
-                </p>
+
+                {/* Comparativa vs Pandero (azul) y Maquisistema (rojo) */}
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[10.5px] space-y-1">
+                  <div className="flex items-center justify-between text-blue-700 dark:text-blue-300 font-semibold">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+                      vs. Pandero ({pandero.cuotasRemateRef}c):
+                    </span>
+                    <span className="tabular-nums font-bold">
+                      {activeItem.asamblea.minCuotasGanadoras <= pandero.cuotasRemateRef
+                        ? `-${pandero.cuotasRemateRef - activeItem.asamblea.minCuotasGanadoras}c`
+                        : `+${activeItem.asamblea.minCuotasGanadoras - pandero.cuotasRemateRef}c`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-rose-700 dark:text-rose-300 font-semibold">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-600 dark:bg-rose-400" />
+                      vs. Maquisistema ({maquisistema.cuotasRemateRef}c):
+                    </span>
+                    <span className="tabular-nums font-bold">
+                      {activeItem.asamblea.minCuotasGanadoras <= maquisistema.cuotasRemateRef
+                        ? `-${maquisistema.cuotasRemateRef - activeItem.asamblea.minCuotasGanadoras}c`
+                        : `+${activeItem.asamblea.minCuotasGanadoras - maquisistema.cuotasRemateRef}c`}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -673,12 +757,12 @@ export default function TrendChart({
             <span className="w-2.5 h-2.5 rounded-full bg-brand-600 dark:bg-emerald-400" />
             FonBienes (corte ganador)
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 border-t border-dashed border-slate-400 dark:border-slate-500" />
+          <span className="inline-flex items-center gap-1.5 text-blue-700 dark:text-blue-400 font-semibold">
+            <span className="w-4 border-t-2 border-dashed border-blue-600 dark:border-blue-400" />
             Ref. Pandero ({pandero.cuotasRemateRef}c)
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="w-4 border-t border-dotted border-slate-300 dark:border-slate-600" />
+          <span className="inline-flex items-center gap-1.5 text-rose-700 dark:text-rose-400 font-semibold">
+            <span className="w-4 border-t-2 border-dashed border-rose-600 dark:border-rose-400" />
             Ref. Maquisistema ({maquisistema.cuotasRemateRef}c)
           </span>
         </>
