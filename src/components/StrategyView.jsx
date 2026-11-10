@@ -86,13 +86,13 @@ export default function StrategyView({ dataset, onOpenSimulator, onOpenHistory }
   const handleCopyPitch = async () => {
     const msg = [
       `*FONBIENES INMUEBLES · PROPUESTA EJECUTIVA*`,
-      `🏢 Certificado: *${formatUsd(plan.certificadoUsd)} USD* (${plan.plazoMeses} meses / ${plan.plazoMeses / 12} años)`,
-      `💵 Cuota Fija Mensual: *${formatUsd(plan.cuotaMensual, { decimals: 2 })} USD*`,
+      `• Certificado: *${formatUsd(plan.certificadoUsd)} USD* (${plan.plazoMeses} meses / ${plan.plazoMeses / 12} años)`,
+      `• Cuota Fija Mensual: *${formatUsd(plan.cuotaMensual, { decimals: 2 })} USD*`,
       plan.hasDiscount
-        ? `🎁 Inscripción (50% OFF): *${formatUsd(plan.inscripcionEfectiva, { decimals: 2 })} USD* (Regular: ${formatUsd(plan.inscripcionRegular, { decimals: 2 })})`
-        : `📋 Inscripción: *${formatUsd(plan.inscripcionRegular, { decimals: 2 })} USD*`,
-      `🚀 Primer Pago de Ingreso: *${formatUsd(plan.primerPago, { decimals: 2 })} USD*`,
-      `📊 Costo Total en todo el plazo: *${formatUsd(plan.costoTotal, { decimals: 2 })} USD* (solo ${plan.costoPctCertificado}%)`,
+        ? `• Inscripción (50% OFF): *${formatUsd(plan.inscripcionEfectiva, { decimals: 2 })} USD* (Regular: ${formatUsd(plan.inscripcionRegular, { decimals: 2 })})`
+        : `• Inscripción: *${formatUsd(plan.inscripcionRegular, { decimals: 2 })} USD*`,
+      `• Primer Pago de Ingreso: *${formatUsd(plan.primerPago, { decimals: 2 })} USD*`,
+      `• Costo Total en todo el plazo: *${formatUsd(plan.costoTotal, { decimals: 2 })} USD* (solo ${plan.costoPctCertificado}%)`,
       `   *(Ahorro vs. Banco: +${formatUsd(plan.banco.ahorroVsFonbienes)} USD y 0% cuota inicial)*`,
       ``,
       `*ESTRATEGIA DE ADJUDICACIÓN:*`,
@@ -212,7 +212,6 @@ export default function StrategyView({ dataset, onOpenSimulator, onOpenHistory }
                 }`}
               >
                 {formatUsd(val)}
-                {val === 80000 && <span className="ml-1 text-[10px] text-emerald-200">★ Base</span>}
               </button>
             );
           })}
@@ -334,14 +333,14 @@ export default function StrategyView({ dataset, onOpenSimulator, onOpenHistory }
               Planificación Inteligente de Compra
             </h3>
             <div className="flex flex-wrap gap-1.5 pt-1">
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                ✓ 0% Cuota Inicial
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                0% Cuota Inicial
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                ✓ Solo Cuota Regular
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                Solo Cuota Regular
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                ✓ Cero Descapitalización
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                Sin Descapitalización
               </span>
             </div>
           </div>
@@ -388,14 +387,14 @@ export default function StrategyView({ dataset, onOpenSimulator, onOpenHistory }
               Oferta Voluntaria para Poner Fecha
             </h3>
             <div className="flex flex-wrap gap-1.5 pt-1">
-              <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-slate-800 text-[11px] font-bold text-amber-800 dark:text-amber-300">
-                ⚡ Adelanto Voluntario de Cuotas
+              <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-slate-800 text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                Adelanto Voluntario de Cuotas
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-slate-800 text-[11px] font-bold text-amber-800 dark:text-amber-300">
-                ⚡ Adjudicación Programada
+              <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-slate-800 text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                Adjudicación Programada
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-slate-800 text-[11px] font-bold text-amber-800 dark:text-amber-300">
-                ⚡ Menor que la Competencia
+              <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-slate-800 text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                Menor que la Competencia
               </span>
             </div>
           </div>
@@ -496,9 +495,9 @@ export default function StrategyView({ dataset, onOpenSimulator, onOpenHistory }
         </div>
 
         {/* Punchline Card */}
-        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-r from-brand-900 to-slate-900 text-white flex items-center justify-between text-xs sm:text-sm font-bold shadow-xs">
-          <span>🎯 Argumento clave: «Tu competencia en cada asamblea no son 396 personas, ¡son apenas 10 a 12!»</span>
-          <span className="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-xs font-extrabold shrink-0 ml-2">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900 text-white flex items-center justify-between text-xs sm:text-sm font-medium shadow-xs">
+          <span>Dinámica competitiva: en cada asamblea la competencia real se concentra en aproximadamente 10 a 12 asociados activos con posturas superiores a 20 cuotas.</span>
+          <span className="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-semibold shrink-0 ml-2">
             Alta Viabilidad
           </span>
         </div>

@@ -168,3 +168,29 @@ html.dark input[type='range'].rams-slider::-moz-range-thumb {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Official A4 Proforma Print Styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html,
+  body,
+  html.dark,
+  html.dark body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .proforma-sheet {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+}

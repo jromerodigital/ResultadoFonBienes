@@ -1,10 +1,11 @@
-  import React from 'react';
-import { BarChart3, SlidersHorizontal, Layers, ShieldCheck, Compass, LogOut, User } from 'lucide-react';
+import React from 'react';
+import { BarChart3, SlidersHorizontal, Layers, ShieldCheck, Compass, FileText, LogOut, User } from 'lucide-react';
 import FonbienesLogo from './FonbienesLogo';
 import ThemeToggle from './ThemeToggle';
 
 const NAV_ITEMS = [
   { id: 'executive', label: 'Panorama', icon: BarChart3 },
+  { id: 'proforma', label: 'Proforma', icon: FileText },
   { id: 'strategy', label: 'Estrategia', icon: Compass },
   { id: 'simulator', label: 'Simulador', icon: SlidersHorizontal },
   { id: 'history', label: 'Asambleas', icon: Layers }
@@ -21,7 +22,7 @@ export default function Header({
 }) {
   return (
     <>
-      <header className="sticky top-0 z-30 bg-white/90 dark:bg-[#0B1319]/90 backdrop-blur-xl border-b border-brand-200/60 dark:border-emerald-500/20 shadow-[0_4px_24px_-12px_rgba(5,124,63,0.10)] dark:shadow-[0_6px_28px_-12px_rgba(0,0,0,0.65)] transition-colors">
+      <header className="sticky top-0 z-30 bg-white/90 dark:bg-[#0B1319]/90 backdrop-blur-xl border-b border-brand-200/60 dark:border-emerald-500/20 shadow-[0_4px_24px_-12px_rgba(5,124,63,0.10)] dark:shadow-[0_6px_28px_-12px_rgba(0,0,0,0.65)] transition-colors print:hidden">
         {/* Institutional Corporate Blue-to-Green Top Hairline (matches official logo top bar) */}
         <div className="h-[3px] w-full bg-gradient-to-r from-[#01518c] via-brand-600 to-emerald-400" />
 
@@ -116,9 +117,9 @@ export default function Header({
       {/* Mobile Bottom Navigation Bar */}
       <nav
         aria-label="Navegación móvil"
-        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#0B1319]/95 backdrop-blur-xl border-t border-brand-200/70 dark:border-emerald-500/20 shadow-[0_-6px_24px_-12px_rgba(5,124,63,0.14)] dark:shadow-[0_-6px_24px_-10px_rgba(0,0,0,0.7)] px-3 py-1.5 transition-colors"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#0B1319]/95 backdrop-blur-xl border-t border-brand-200/70 dark:border-emerald-500/20 shadow-[0_-6px_24px_-12px_rgba(5,124,63,0.14)] dark:shadow-[0_-6px_24px_-10px_rgba(0,0,0,0.7)] px-2 py-1.5 transition-colors print:hidden"
       >
-        <div className="grid grid-cols-3 gap-1.5 max-w-md mx-auto">
+        <div className="grid grid-cols-5 gap-1 max-w-md mx-auto">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;

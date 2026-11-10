@@ -368,13 +368,46 @@ export function calculateCommercialPitchPlan({
   const totalCuotas = roundToCents(cuotaMensual * plazoMeses);
   const totalDevolver = roundToCents(totalCuotas + inscripcionEfectiva);
 
-  // Costo total de financiamiento
+  // Costo total de financiamiento (Sobrecosto)
   const costoTotal = roundToCents(totalDevolver - certificadoUsd);
-  const costoPctCertificado = Number(((costoTotal / certificadoUsd) * 100).toFixed(1));
+  const costoPctCertificado = Number(((costoTotal / certificadoUsd) * 100).toFixed(2));
+  const plazosAnios = Number((plazoMeses / 12).toFixed(1));
+  const sobrecostoAnualPct = Number((costoPctCertificado / (plazoMeses / 12)).toFixed(2));
+  const sobrecostoMensualUsd = roundToCents(costoTotal / plazoMeses);
+
+  // Desglose Comercial: Membresía Única vs Gasto Administrativo Real en Cuotas
+  // Gasto administrativo contractual puro sin IGV: 18% del certificado en todo el plazo
+  const gastoAdmNetoTotal = roundToCents(certificadoUsd * 0.18);
+  const gastoAdmIgvTotal = roundToCents(gastoAdmNetoTotal * 0.18);
+  const gastoAdmTotalCuotas = roundToCents(totalCuotas - certificadoUsd);
+  
+  // Tasa de gasto administrativo puro anual (sin IGV):
+  // En programa oficial FBP010 (132 meses / 11 años) = 18% / 11 = 1.636% ≈ 1.64% anual
+  // En plazo de 120 meses (10 años) = 18% / 10 = 1.80% anual
+  const gastoAdmAnualNetoPct = Number((18 / (plazoMeses / 12)).toFixed(2));
+  const tasaFbp010AdmNetoAnual = 1.64;
+
+  // Desglose de Membresía / Inscripción (Pago único al afiliarse)
+  const membresiaNetoPct = hasDiscount ? 2.00 : 4.00;
+  const membresiaNetoUsd = roundToCents(certificadoUsd * (membresiaNetoPct / 100));
+  const membresiaIgvUsd = roundToCents(membresiaNetoUsd * 0.18);
+  const membresiaTotalUsd = inscripcionEfectiva; // 2.36% o 4.72% con IGV
 
   // Remate estimado
   const desembolsoRemate = roundToCents(cuotasRemate * cuotaMensual);
   const pctPlazoRemate = Number(((cuotasRemate / plazoMeses) * 100).toFixed(1));
+
+  // Remate Escenario A: Reducir el plazo de pago (misma cuota mensual, menos meses)
+  const mesesRestantesPlazoReducido = Math.max(1, plazoMeses - cuotasRemate);
+  const aniosAhorradosRemate = Number((cuotasRemate / 12).toFixed(1));
+  const saldoRestanteCuotas = roundToCents(mesesRestantesPlazoReducido * cuotaMensual);
+
+  // Remate Escenario B: Reducir la cuota mensual (mismo plazo total, menor cuota)
+  const nuevaCuotaReducida = roundToCents(
+    ((plazoMeses - cuotasRemate) * cuotaMensual) / plazoMeses
+  );
+  const ahorroMensualCuotaB = roundToCents(cuotaMensual - nuevaCuotaReducida);
+  const pctReduccionCuotaB = Number(((cuotasRemate / plazoMeses) * 100).toFixed(1));
 
   // Comparativa con Crédito Hipotecario Bancario tradicional en USD (TEA referencial 9.8% anual en USD)
   const tasaMensual = 0.098 / 12;
@@ -383,6 +416,7 @@ export function calculateCommercialPitchPlan({
   );
   const totalBanco = roundToCents(cuotaBancaria * plazoMeses);
   const interesesBanco = roundToCents(totalBanco - certificadoUsd);
+  const sobrecostoBancoPct = Number(((interesesBanco / certificadoUsd) * 100).toFixed(1));
   const cuotaInicialBanco = roundToCents(certificadoUsd * 0.15); // 15% cuota inicial
   const ahorroInteresesVsBanco = roundToCents(interesesBanco - costoTotal);
 
@@ -398,6 +432,7 @@ export function calculateCommercialPitchPlan({
   return {
     certificadoUsd,
     plazoMeses,
+    plazosAnios,
     hasDiscount,
     cuotaMensual,
     inscripcionRegular,
@@ -409,13 +444,41 @@ export function calculateCommercialPitchPlan({
     totalDevolver,
     costoTotal,
     costoPctCertificado,
+    sobrecostoAnualPct,
+    sobrecostoMensualUsd,
+    desgloseComercial: {
+      gastoAdmNetoTotal,
+      gastoAdmIgvTotal,
+      gastoAdmTotalCuotas,
+      gastoAdmAnualNetoPct,
+      tasaFbp010AdmNetoAnual,
+      membresiaNetoPct,
+      membresiaNetoUsd,
+      membresiaIgvUsd,
+      membresiaTotalUsd
+    },
     cuotasRemate,
     desembolsoRemate,
     pctPlazoRemate,
+    remateOpcionA: {
+      cuotaMensual: cuotaMensual,
+      mesesRestantes: mesesRestantesPlazoReducido,
+      cuotasDescontadas: cuotasRemate,
+      aniosAhorrados: aniosAhorradosRemate,
+      saldoRestante: saldoRestanteCuotas
+    },
+    remateOpcionB: {
+      nuevaCuotaMensual: nuevaCuotaReducida,
+      mesesPlazo: plazoMeses,
+      ahorroPorMes: ahorroMensualCuotaB,
+      pctReduccion: pctReduccionCuotaB,
+      saldoRestante: saldoRestanteCuotas
+    },
     banco: {
       cuotaMensual: cuotaBancaria,
       totalDevolver: totalBanco,
       intereses: interesesBanco,
+      sobrecostoPct: sobrecostoBancoPct,
       cuotaInicial: cuotaInicialBanco,
       ahorroVsFonbienes: ahorroInteresesVsBanco
     },
