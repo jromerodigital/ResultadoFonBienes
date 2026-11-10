@@ -24,7 +24,6 @@ import {
   Users
 } from 'lucide-react';
 import FonbienesLogo from './FonbienesLogo';
-import RentVsMortgageComparison from './RentVsMortgageComparison';
 import {
   calculateCommercialPitchPlan,
   formatUsd,
@@ -258,18 +257,6 @@ export default function ProformaView({ dataset, onOpenStrategy, onOpenSimulator 
             >
               {copied ? <Check className="w-4 h-4 stroke-[2.5]" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? 'Copiado' : 'Enviar por WhatsApp'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                document.getElementById('simulador-alquiler')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-[#057c3f] dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-              title="Comparativa FonBienes vs. Crédito Hipotecario + Alquiler"
-            >
-              <Building2 className="w-4 h-4" />
-              <span>Vs. Hipoteca + Alquiler</span>
             </button>
 
             <button
@@ -1194,14 +1181,6 @@ export default function ProformaView({ dataset, onOpenStrategy, onOpenSimulator 
           </div>
           <div className="font-extrabold tracking-wide tabular-nums">RUC: 20523395701</div>
         </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 6. COMPARATIVA DINÁMICA: FONBIENES VS. CRÉDITO HIPOTECARIO + ALQUILER     */}
-      {/* (Inspirado en la demostración en video explicacionfc.mp4)                */}
-      {/* ========================================================================= */}
-      <div id="simulador-alquiler" className="print:hidden pt-2">
-        <RentVsMortgageComparison plan={plan} />
       </div>
 
       {/* ========================================================================= */}
