@@ -397,17 +397,25 @@ export function calculateCommercialPitchPlan({
   const desembolsoRemate = roundToCents(cuotasRemate * cuotaMensual);
   const pctPlazoRemate = Number(((cuotasRemate / plazoMeses) * 100).toFixed(1));
 
-  // Remate Escenario A: Reducir el plazo de pago (misma cuota mensual, menos meses)
-  const mesesRestantesPlazoReducido = Math.max(1, plazoMeses - cuotasRemate);
-  const aniosAhorradosRemate = Number((cuotasRemate / 12).toFixed(1));
-  const saldoRestanteCuotas = roundToCents(mesesRestantesPlazoReducido * cuotaMensual);
+  // Meses contractuales restantes tras el primer pago de ingreso (Cuota 1 ya abonada al afiliarse):
+  const mesesContratoRestantes = Math.max(1, plazoMeses - 1);
 
-  // Remate Escenario B: Reducir la cuota mensual (mismo plazo total, menor cuota)
+  // Remate Escenario A: Reducir el plazo de pago (misma cuota mensual, menos meses)
+  // Al ingresar pagó la Cuota 1; al ganar el remate adelanta 'cuotasRemate'.
+  // Meses pendientes por pagar = plazoMeses - 1 - cuotasRemate (ej: 120 - 1 - 40 = 79 meses)
+  const mesesPendientesA = Math.max(0, plazoMeses - 1 - cuotasRemate);
+  const aniosAhorradosRemate = Number((cuotasRemate / 12).toFixed(1));
+  const saldoRestanteCuotas = roundToCents(mesesPendientesA * cuotaMensual);
+
+  // Remate Escenario B: Reducir la cuota mensual (distribuida en los meses restantes del contrato: plazo - 1)
+  // Fórmula: (cuotaMensual * mesesPendientesA) / mesesContratoRestantes (ej: ($808.27 * 79) / 119 = $536.58)
   const nuevaCuotaReducida = roundToCents(
-    ((plazoMeses - cuotasRemate) * cuotaMensual) / plazoMeses
+    (cuotaMensual * mesesPendientesA) / mesesContratoRestantes
   );
   const ahorroMensualCuotaB = roundToCents(cuotaMensual - nuevaCuotaReducida);
-  const pctReduccionCuotaB = Number(((cuotasRemate / plazoMeses) * 100).toFixed(1));
+  const pctReduccionCuotaB = cuotaMensual > 0
+    ? Number((((cuotaMensual - nuevaCuotaReducida) / cuotaMensual) * 100).toFixed(1))
+    : 0;
 
   // Comparativa con Crédito Hipotecario Bancario tradicional en USD (TEA referencial 9.8% anual en USD)
   const tasaMensual = 0.098 / 12;
@@ -462,17 +470,21 @@ export function calculateCommercialPitchPlan({
     pctPlazoRemate,
     remateOpcionA: {
       cuotaMensual: cuotaMensual,
-      mesesRestantes: mesesRestantesPlazoReducido,
+      mesesRestantes: mesesPendientesA,
+      plazoFinalEfectivo: 1 + mesesPendientesA,
+      mesesContratoRestantes,
       cuotasDescontadas: cuotasRemate,
       aniosAhorrados: aniosAhorradosRemate,
       saldoRestante: saldoRestanteCuotas
     },
     remateOpcionB: {
       nuevaCuotaMensual: nuevaCuotaReducida,
-      mesesPlazo: plazoMeses,
+      mesesPlazo: mesesContratoRestantes,
+      mesesContratoRestantes,
+      mesesPendientesA,
       ahorroPorMes: ahorroMensualCuotaB,
       pctReduccion: pctReduccionCuotaB,
-      saldoRestante: saldoRestanteCuotas
+      saldoRestante: roundToCents(mesesContratoRestantes * nuevaCuotaReducida)
     },
     banco: {
       cuotaMensual: cuotaBancaria,

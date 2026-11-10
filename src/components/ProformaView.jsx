@@ -186,8 +186,8 @@ export default function ProformaView({ dataset, onOpenStrategy, onOpenSimulator 
       `*3. MODALIDADES DE ADJUDICACIÓN:*`,
       `• *1) Sorteo (Ahorro Programado):* Adjudicación mensual sin cuota inicial. Si adjudica en el mes ${sorteoStats.mes}, recibe los ${formatUsd(plan.certificadoUsd)} USD y el saldo (${sorteoStats.mesesPendientes} meses) lo continúa abonando en su cuota fija de ${formatUsd(plan.cuotaMensual, { decimals: 2 })}/mes.`,
       `• *2) Remate (Adelanto de ${plan.cuotasRemate} cuotas = ${formatUsd(plan.desembolsoRemate, { decimals: 2 })} USD):*`,
-      `   *Opción A (Reducir plazo):* Mantiene la cuota de *${formatUsd(plan.remateOpcionA.cuotaMensual, { decimals: 2 })} USD* por solo *${plan.remateOpcionA.mesesRestantes} meses* (finaliza ${plan.remateOpcionA.aniosAhorrados} años antes).`,
-      `   *Opción B (Reducir cuota):* Mantiene el plazo de *${plan.remateOpcionB.mesesPlazo} meses* y su cuota se reduce a *${formatUsd(plan.remateOpcionB.nuevaCuotaMensual, { decimals: 2 })} USD/mes* (ahorro de ${formatUsd(plan.remateOpcionB.ahorroPorMes, { decimals: 2 })}/mes).`
+      `   *Opción A (Reducir plazo):* Al haber abonado la cuota 1 al ingreso, le restan solo *${plan.remateOpcionA.mesesRestantes} meses pendientes* manteniendo la cuota fija de *${formatUsd(plan.remateOpcionA.cuotaMensual, { decimals: 2 })} USD* (finaliza ${plan.remateOpcionA.aniosAhorrados} años antes).`,
+      `   *Opción B (Reducir cuota):* Durante los *${plan.remateOpcionB.mesesPlazo} meses pendientes*, su cuota mensual se recalcula a *${formatUsd(plan.remateOpcionB.nuevaCuotaMensual, { decimals: 2 })} USD/mes* (ahorro de ${formatUsd(plan.remateOpcionB.ahorroPorMes, { decimals: 2 })}/mes, -${plan.remateOpcionB.pctReduccion}%).`
     ].join('\n');
 
     try {
@@ -944,7 +944,7 @@ export default function ProformaView({ dataset, onOpenStrategy, onOpenSimulator 
                     <div className="flex items-center justify-between text-xs font-extrabold text-slate-700 dark:text-slate-300 tabular-nums">
                       <span>1</span>
                       <span className="text-[#057c3f] dark:text-emerald-400">
-                        Nuevo plazo: {plan.remateOpcionA.mesesRestantes} meses
+                        Nuevo plazo: {plan.remateOpcionA.mesesRestantes} meses pendientes
                       </span>
                       <span className="text-slate-400 line-through">{plan.plazoMeses}</span>
                     </div>
@@ -959,7 +959,7 @@ export default function ProformaView({ dataset, onOpenStrategy, onOpenSimulator 
                         <div
                           className="h-full bg-amber-400/80 dark:bg-amber-500/60 transition-all"
                           style={{ width: `${pctDescontadoA}%` }}
-                          title={`-${plan.cuotasRemate} últimas cuotas canceladas`}
+                          title={`-${plan.cuotasRemate} cuotas adelantadas en remate`}
                         />
                       </div>
                       <div className="w-3 h-3 rotate-45 border-2 border-amber-500 bg-white dark:bg-slate-900 shrink-0 z-10" />
@@ -1009,7 +1009,7 @@ export default function ProformaView({ dataset, onOpenStrategy, onOpenSimulator 
                         Cuota baja de {formatUsd(plan.cuotaMensual, { decimals: 2 })} a{' '}
                         {formatUsd(plan.remateOpcionB.nuevaCuotaMensual, { decimals: 2 })}
                       </span>
-                      <span>{plan.plazoMeses}</span>
+                      <span>{plan.remateOpcionB.mesesPlazo} meses</span>
                     </div>
 
                     <div className="relative flex items-center py-1.5">
